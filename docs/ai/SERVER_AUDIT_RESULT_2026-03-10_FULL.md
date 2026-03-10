@@ -149,6 +149,7 @@
 - На S2 есть активный `okdesk-pipeline.service` и `127.0.0.1:3200`.
 - Stack `n8n/db/cache/docling/bs24` живой.
 - Live workflow flags: WF3 `active`, WF8 Boris relay `active`, WF10 `active`, Telegram Logger `active`, WF Watchdog `active`, а WF11 `inactive`, Email Attachment Parser `inactive`, WF8 Watchdog `inactive`.
+- Последующий workflow-audit подтвердил эти флаги по exact workflow IDs, а не только по именам.
 - Counts: `emails=39683`, `technicians=5809`, `mem_events=30203`.
 - Docling отвечает `{"status":"ok"}` из docker-сети n8n.
 - Host `ss` на S2 показывает `5678`, `15432`, `3200`, `3300`, `3301`, но не `5001`.
@@ -158,6 +159,8 @@
 - Главный live drift: `okdesk-pipeline` живет на S2 и работает, а snapshot docs пишут, что service не развернут.
 - WF11 live `inactive`, хотя в snapshot docs он `Active`.
 - WF8 Watchdog live `inactive`.
+- Для `WF11` и `WF8 Watchdog` read-only аудит подтверждает docs drift, но не подтверждает runtime-аварию; перед apply нужен owner decision.
+- `Email Attachment Parser inactive` совпадает между snapshot docs и live и сейчас выглядит нормой.
 - Ожидание host `:5001` для Docling относится к docs drift, а не к active server-side defect.
 
 **PASS / WARN / FAIL**
@@ -180,4 +183,4 @@
 - Зафиксировать live model routing: internal cron = `bridge/claude-opus-4-6`, external = `claude-haiku-4-5 -> gpt-5`.
 - Исправить prompt/memory paths: нет `.openclaw/SOUL.md`, `RULES.md` живет в `workspace/memory`.
 - Исправить bridge/gateway docs: Caddyfile = `/etc/caddy/Caddyfile`, `8443` local health = `http`, `sites-enabled` сейчас regular files, и active checks уже соответствуют этим live-фактам.
-- Исправить integration docs: active checks не требуют host `:5001` для Docling, а workflow statuses live отличаются от snapshot docs.
+- Исправить integration docs: active checks не требуют host `:5001` для Docling, а workflow reconciliation делать по workflow id с текущим live state: `WF11/WF8 Watchdog=inactive`, `Email Attachment Parser=inactive`.

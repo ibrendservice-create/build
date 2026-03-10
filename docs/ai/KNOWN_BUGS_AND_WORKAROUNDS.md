@@ -36,7 +36,7 @@
 ### Workflow status drift in docs
 - симптом: snapshot docs расходятся с live-аудитом по статусам части n8n workflows.
 - где проявляется: планирование изменений и post-check для workflow контуров.
-- workaround: в repo учитывать audit-backed status drift: WF3/WF8 relay/WF10=`active`, WF11/WF8 Watchdog=`inactive`; для более нового live state требовать `SERVER_AUDIT_REQUIRED`.
+- workaround: в repo учитывать audit-backed status drift по exact workflow id: WF3/WF8 relay/WF10/Telegram Logger/WF Watchdog=`active`, WF11/WF8 Watchdog=`inactive`, Email Attachment Parser=`inactive`; reconciliation делать по workflow id, а не только по названию; для более нового live state требовать `SERVER_AUDIT_REQUIRED`.
 - что нельзя делать: активировать, деактивировать или считать workflow inactive/active только по документации.
 - статус: active.
 

@@ -120,13 +120,23 @@
 ### Workflow state reconciliation
 - Проблема: live `WF11` и `WF8 Watchdog` inactive, хотя snapshot docs говорят обратное.
 - Риск: включение или отключение не тех workflow, рассинхрон между n8n live state и operational expectations.
-- Source of truth: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`.
-- Минимальное исправление: сначала owner decision по intended state, потом менять только нужные `active` flags, не опираясь на snapshot docs.
+- Source of truth: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_WORKFLOWS.md`, `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`.
+- Минимальное исправление: сначала owner decision по intended state для `WF11` и `WF8 Watchdog`, потом менять только нужные `active` flags, не опираясь на snapshot docs; сверку делать по workflow id, не только по названию.
 - Rollback: restore предыдущих workflow states из DB snapshot/export.
 - Post-check:
-  - SQL по `workflow_entity`
+  - SQL по `workflow_entity` для exact workflow IDs
   - n8n executions
   - watchdog/error logs
+
+### Email Attachment Parser state
+- Проблема: workflow выглядит `inactive`, но это не конфликт между snapshot docs и live.
+- Риск: ложная активация on-demand workflow только потому, что inactive ошибочно принят за drift.
+- Source of truth: `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_WORKFLOWS.md`, `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`.
+- Минимальное исправление: server-side apply не делать; считать `Email Attachment Parser inactive` текущей нормой, пока owner не решит иначе.
+- Rollback: не требуется, потому что apply не нужен.
+- Post-check:
+  - в каноне workflow отражён как `inactive`
+  - backlog не требует отдельной активации этого workflow
 
 ## 5. Postponed
 
