@@ -3,14 +3,23 @@
 ## Scope
 Работай только внутри этого репозитория.
 
-Перед любой задачей прочитай:
+Перед любой задачей прочитай в таком порядке:
+1. `docs/ai/OPERATING_CONSENSUS.md`
+2. `docs/ai/PROJECT_MEMORY.md`
+3. `docs/ai/SOURCE_OF_TRUTH.md`
+4. `docs/ai/CHANGE_POLICY.md`
+5. `docs/ai/VERIFICATION_MATRIX.md`
+6. `docs/ai/KNOWN_BUGS_AND_WORKAROUNDS.md`
+7. `docs/ai/HANDOFF_2026-03-10.md`
 
-docs/ai/PROJECT_MEMORY.md
-docs/ai/SOURCE_OF_TRUTH.md
-docs/ai/CHANGE_POLICY.md
-docs/ai/VERIFICATION_MATRIX.md
-docs/ai/KNOWN_BUGS_AND_WORKAROUNDS.md
-docs/ai/HANDOFF_2026-03-10.md
+Внешние audit docs:
+- `Boris-Detail-Schema.txt` использовать только если файл явно дан для аудита.
+- Сырой `Boris-Detail-Schema.txt` не копировать в repo.
+
+## Canon vs snapshot docs
+- Канон repo: `docs/ai/OPERATING_CONSENSUS.md` и policy-файлы из `docs/ai/*`.
+- Snapshot docs: `docs/ai/HANDOFF_2026-03-10.md` и внешний `Boris-Detail-Schema.txt`.
+- При конфликте docs не угадывай и не выбирай "правильную" версию по памяти; помечай `SERVER_AUDIT_REQUIRED`.
 
 ## Core behavior
 - сначала проверка
@@ -21,6 +30,8 @@ docs/ai/HANDOFF_2026-03-10.md
 - потом верхний
 - минимальные изменения
 - всегда rollback
+- обязательный post-change verification
+- не читать и не выводить секреты
 
 ## Forbidden without approval
 Запрещено без approve:
@@ -29,21 +40,27 @@ docs/ai/HANDOFF_2026-03-10.md
 - routing
 - gateway
 - bridge
-- monitoring
+- monitoring / self-healing
+- workflows и live workflow state
+- server-side truth вне repo
 - destructive actions
-- secrets / tokens
+- secrets / tokens / credentials
 - restart критичных сервисов
 - менять runtime вместо master
+- широкий refactor вне текущей задачи
 
 ## Workflow
-1 определить слой
-2 найти source of truth
-3 проверить риски
-4 минимальный план
-5 rollback
-6 изменение
-7 verification
-8 verdict
+1 определить слой и blast radius
+2 прочитать канонические docs в порядке выше
+3 найти source of truth
+4 отделить канон от snapshot/runtime
+5 проверить риски и соседние контуры
+6 если docs конфликтуют -> SERVER_AUDIT_REQUIRED
+7 минимальный план
+8 rollback
+9 изменение
+10 post-check
+11 verdict
 
 ## Output format
 - слой
@@ -51,5 +68,5 @@ docs/ai/HANDOFF_2026-03-10.md
 - риск
 - план
 - rollback
-- verification
+- post-check
 - verdict
