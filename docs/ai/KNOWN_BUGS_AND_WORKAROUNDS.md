@@ -55,18 +55,18 @@
 - статус: active.
 
 ### Gateway and file path drift
-- симптом: live-аудит показывает `Caddyfile=/etc/caddy/Caddyfile`, `sites-enabled` как regular files и local `8443` health по `http`.
+- симптом: snapshot docs раньше расходились с live по `Caddyfile`, типу файлов в `sites-enabled` и local `8443` health probe.
 - где проявляется: gateway audit, reverse proxy post-check, config path assumptions.
-- workaround: использовать эти audited paths только как dated repo memory; при любой новой live-операции требовать `SERVER_AUDIT_REQUIRED`.
+- workaround: использовать audited live facts и locate-confirmed active checks: `Caddyfile=/etc/caddy/Caddyfile`, local `8443` probe=`http`, `sites-enabled` regular files допустимы; server-side fix для этих assumptions не нужен.
 - что нельзя делать: предполагать `/opt/app/Caddyfile`, symlink в `sites-enabled` или local TLS на `8443` без проверки.
-- статус: active.
+- статус: mitigated.
 
 ### Docling host-port assumption drift
-- симптом: docs могут предполагать host `:5001`, но live-аудит подтверждает только доступность Docling внутри docker-сети.
+- симптом: docs могли предполагать host `:5001`, но live-аудит и locate подтверждают только container/docker-network expectation для Docling.
 - где проявляется: integration checks и OCR troubleshooting.
-- workaround: считать host `:5001` необязательным, если Docker-network health подтвержден.
+- workaround: считать host `:5001` необязательным; опираться на Docker-network health и active checks, которые не требуют host-port.
 - что нельзя делать: объявлять интеграцию сломанной только потому, что `ss` на хосте не показывает `:5001`.
-- статус: active.
+- статус: mitigated.
 
 ### S1 to S2 alias drift
 - симптом: `ssh s2` на S1 не работает, хотя маршрут, TCP и SSH по IP исправны.

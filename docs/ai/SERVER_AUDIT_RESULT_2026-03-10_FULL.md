@@ -81,11 +81,12 @@
 - nginx содержит `/openai/v1`, `/hooks`, `/webhook`.
 - Caddy routes есть в `/etc/caddy/Caddyfile`.
 - `/hooks` смотрит на актуальный path `172.18.0.2:18790/hooks/`.
+- Последующий read-only locate показал, что active server-side checks уже используют `/etc/caddy/Caddyfile` и `http://localhost:8443/health`.
+- Active checks также не требуют symlink-type для `/etc/nginx/sites-enabled/*`.
 
 **Красные флаги**
-- Caddyfile path в live = `/etc/caddy/Caddyfile`, а не `/opt/app/Caddyfile`.
-- `sites-enabled/claude-bridge` и `n8n-public-edge` = обычные файлы, не symlink.
-- Допущение "`8443` = HTTPS local" неверно.
+- Для этого контура подтвержден только docs drift: snapshot assumptions про `/opt/app/Caddyfile`, symlink-only `sites-enabled` и local HTTPS на `8443` устарели.
+- Active server-side misconfiguration для этих path/probe assumptions locate не подтвердил.
 
 **PASS / WARN / FAIL**
 - `WARN`
@@ -151,12 +152,13 @@
 - Counts: `emails=39683`, `technicians=5809`, `mem_events=30203`.
 - Docling отвечает `{"status":"ok"}` из docker-сети n8n.
 - Host `ss` на S2 показывает `5678`, `15432`, `3200`, `3300`, `3301`, но не `5001`.
+- Последующий read-only locate показал, что active checks для Docling идут через container/docker-network health и не требуют host `:5001`.
 
 **Красные флаги**
 - Главный live drift: `okdesk-pipeline` живет на S2 и работает, а snapshot docs пишут, что service не развернут.
 - WF11 live `inactive`, хотя в snapshot docs он `Active`.
 - WF8 Watchdog live `inactive`.
-- Ожидание host `:5001` для Docling неверно: сервис доступен внутри docker-сети, но не опубликован на host.
+- Ожидание host `:5001` для Docling относится к docs drift, а не к active server-side defect.
 
 **PASS / WARN / FAIL**
 - `WARN`
@@ -177,5 +179,5 @@
 - Обновить snapshot docs, чтобы отразить live-факт: `okdesk-pipeline` развернут и active на S2.
 - Зафиксировать live model routing: internal cron = `bridge/claude-opus-4-6`, external = `claude-haiku-4-5 -> gpt-5`.
 - Исправить prompt/memory paths: нет `.openclaw/SOUL.md`, `RULES.md` живет в `workspace/memory`.
-- Исправить bridge/gateway docs: Caddyfile = `/etc/caddy/Caddyfile`, `8443` local health = `http`, `sites-enabled` сейчас regular files.
-- Исправить integration docs: Docling не публикует host `:5001`, а workflow statuses live отличаются от snapshot docs.
+- Исправить bridge/gateway docs: Caddyfile = `/etc/caddy/Caddyfile`, `8443` local health = `http`, `sites-enabled` сейчас regular files, и active checks уже соответствуют этим live-фактам.
+- Исправить integration docs: active checks не требуют host `:5001` для Docling, а workflow statuses live отличаются от snapshot docs.

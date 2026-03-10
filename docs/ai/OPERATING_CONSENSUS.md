@@ -72,10 +72,11 @@
 - `/data/.openclaw/memory` в live используется как storage/DB path, а не как rules path.
 - `CLAUDE.md` в live не является master-источником правил; он только ссылается на `workspace/memory/RULES.md`.
 - Prompt/memory drift сейчас классифицирован как docs drift, а не как подтвержденный runtime failure.
-- Live Caddyfile path = `/etc/caddy/Caddyfile`.
-- `sites-enabled` на S1 сейчас regular files, не symlink.
-- Local health для `8443` проверяется по `http`, не по `https`.
-- Docling не публикует host `:5001`, но доступен внутри docker-сети.
+- Live Caddyfile path = `/etc/caddy/Caddyfile`, и active server-side checks уже используют этот path.
+- `sites-enabled` на S1 сейчас regular files, не symlink, и active checks не требуют symlink-type для этих nginx files.
+- Local health для `8443` проверяется по `http`, не по `https`, и active checks уже используют `http`.
+- Docling не публикует host `:5001`, но доступен внутри docker-сети, и active checks не требуют host `:5001`.
+- Для этого gateway/health-check контура server-side apply по path/probe assumptions не нужен; это docs drift, закрытый read-only аудитом и locate.
 - Live workflow statuses, подтвержденные аудитом: WF3 `active`, WF8 relay `active`, WF10 `active`, WF11 `inactive`, WF8 Watchdog `inactive`.
 - S1 -> S2 проблема из первого аудита была alias drift; сеть и SSH по IP рабочие.
 - Любые server-side изменения prompt/memory layout требуют explicit approve.

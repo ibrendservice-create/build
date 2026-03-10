@@ -53,6 +53,21 @@
   - alias issue отражён как resolved;
   - runbook не смешивает alias problem и real network problem.
 
+### Gateway / health-check assumptions resolved by audit
+- Проблема: snapshot docs и ранние выводы аудита создавали впечатление, что по gateway/health assumptions нужен server-side fix.
+- Риск: ненужные server-side изменения в `gateway` и `monitoring`, хотя active checks уже соответствуют live.
+- Source of truth: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, read-only locate active files `/opt/infra-monitor/service-guard.py`, `/opt/infra-monitor/monitor.sh`, `/opt/n8n-doctor/doctor.py`, `/opt/app/docker-compose.yml`, `/etc/systemd/system/multi-user.target.wants/caddy.service`.
+- Минимальное исправление: server-side apply не делать; держать в каноне только audited facts:
+  - `Caddyfile=/etc/caddy/Caddyfile`
+  - local `8443` health uses `http`
+  - active checks не требуют symlink для `nginx sites-enabled`
+  - active checks не требуют host `:5001` для Docling
+- Rollback: откатить только docs-only updates, если потребуется вернуть backlog к состоянию до locate.
+- Post-check:
+  - canonical docs не требуют server-side fix для этого контура
+  - gateway/Docling assumptions описаны как docs drift, не как live defect
+  - backlog больше не держит этот contour в pending server-side fixes
+
 ## 3. Next server-side fixes by priority
 
 ### okdesk-pipeline canonical placement on S2
@@ -102,18 +117,6 @@
   - чтение правил
   - отсутствие двух расходящихся master-файлов
 
-### Gateway / health-check normalization
-- Проблема: live использует `/etc/caddy/Caddyfile`, local `8443` health по `http`, а `sites-enabled` на S1 regular files; часть operational assumptions устарела.
-- Риск: ложные health-check failures, проверка не тех путей и опасные действия на gateway по неверным предположениям.
-- Source of truth: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`.
-- Минимальное исправление: сначала привести health-check scripts и operational assumptions к реальным path/protocol, не меняя routing logic.
-- Rollback: вернуть прежние health scripts/config references.
-- Post-check:
-  - `http://127.0.0.1:8443/health`
-  - `http://127.0.0.1:3100/health`
-  - `http://127.0.0.1:3102/health`
-  - `https://n8n.brendservice24.ru/bridge-ha/health`
-
 ### Workflow state reconciliation
 - Проблема: live `WF11` и `WF8 Watchdog` inactive, хотя snapshot docs говорят обратное.
 - Риск: включение или отключение не тех workflow, рассинхрон между n8n live state и operational expectations.
@@ -126,26 +129,6 @@
   - watchdog/error logs
 
 ## 5. Postponed
-
-### Возврат nginx `sites-enabled` к symlink convention
-- Проблема: `sites-enabled` на S1 сейчас regular files, а не symlink.
-- Риск: housekeeping drift и возможная путаница в ops-практике, но текущий runtime healthy.
-- Source of truth: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`.
-- Минимальное исправление: если вообще делать, то только отдельным housekeeping task после сравнения содержимого и с `nginx -t`.
-- Rollback: вернуть original files на место.
-- Post-check:
-  - `nginx -t`
-  - сравнение effective config до/после
-
-### Публикация Docling на host `:5001`
-- Проблема: host-port отсутствует, но интеграция внутри docker-сети рабочая.
-- Риск: лишнее расширение surface area без доказанной необходимости и шанс сломать рабочий docker-network path.
-- Source of truth: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`.
-- Минимальное исправление: не делать сейчас; возвращаться только при реальной потребности во внешнем host-access.
-- Rollback: убрать published port или reverse-proxy mapping.
-- Post-check:
-  - OCR workflow health
-  - отсутствие regressions в n8n-docling chain
 
 ### Миграция okdesk-pipeline между S2 и S1
 - Проблема: есть docs drift по placement, но нет доказательства, что текущий S2 runtime неисправен.

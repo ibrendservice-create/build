@@ -18,10 +18,18 @@
   - live placement/status `okdesk-pipeline`;
   - live model routing для internal cron и External Boris;
   - live prompt/memory paths и rules source of truth на S1;
-  - live gateway/file path details;
+  - live gateway/file path details и active health-check assumptions;
   - live workflow statuses, явно проверенным в аудите;
   - S1 -> S2 alias drift vs network health.
 - Эти audit docs не заменяют live master после даты аудита; для более нового состояния нужен новый server audit.
+
+## Gateway / health-check specifics
+- Для gateway/health-check контура repo-visible truth на дату аудита включает не только paths, но и locate-подтверждение active checks.
+- На S2 active checks уже используют `/etc/caddy/Caddyfile`; stale path `/opt/app/Caddyfile` в active server-side checks не подтвержден.
+- На S1 и S2 active checks уже используют `http` для local/remote `8443` health probe; stale TLS-assumption для local `8443` не подтвержден.
+- Active checks не требуют symlink-type для `/etc/nginx/sites-enabled/*`; regular files на S1 не являются server-side defect сами по себе.
+- Active checks не требуют host `:5001` для Docling; live expectation = container/docker-network health.
+- Для этих gateway/health assumptions server-side fix не требуется; это docs drift, закрытый аудитом и read-only locate.
 
 ## Prompt / memory specifics on S1
 - Для live правил на S1 repo-visible source of truth = `/data/.openclaw/workspace/memory/RULES.md`, как это подтверждено в `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`.
