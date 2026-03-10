@@ -7,7 +7,7 @@
 - Только repo docs и project instruction files.
 - Runtime, server-side truth, live workflows и secrets находятся вне этого repo.
 - `docs/ai/HANDOFF_2026-03-10.md` и внешний `Boris-Detail-Schema.txt` используются для аудита, а не как live master.
-- `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md` и `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md` это dated audit docs: они фиксируют проверенные live-факты на дату аудита, но не заменяют live master после этой даты.
+- `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md` и `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md` это dated audit docs: они фиксируют проверенные live-факты на дату аудита, но не заменяют live master после этой даты.
 
 ## Canonical read order
 1. `docs/ai/OPERATING_CONSENSUS.md`
@@ -20,13 +20,14 @@
 8. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`
 9. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`
 10. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`
-11. `docs/ai/HANDOFF_2026-03-10.md`
-12. `Boris-Detail-Schema.txt` только если файл явно дан для аудита; сырой файл не копировать в repo.
+11. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`
+12. `docs/ai/HANDOFF_2026-03-10.md`
+13. `Boris-Detail-Schema.txt` только если файл явно дан для аудита; сырой файл не копировать в repo.
 
 ## Document priority
 - `AGENTS.md` и `CLAUDE.md` это agent entry points; они должны ссылаться на один и тот же канон и не расходиться по правилам проекта.
 - Канон repo: этот файл плюс `docs/ai/PROJECT_MEMORY.md`, `docs/ai/SOURCE_OF_TRUTH.md`, `docs/ai/CHANGE_POLICY.md`, `docs/ai/VERIFICATION_MATRIX.md`, `docs/ai/KNOWN_BUGS_AND_WORKAROUNDS.md`.
-- Dated audit docs: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md` и `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`.
+- Dated audit docs: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md` и `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`.
 - Snapshot docs: `docs/ai/HANDOFF_2026-03-10.md` и внешний `Boris-Detail-Schema.txt`.
 - Live server-side truth проверяется только вне repo.
 
@@ -73,6 +74,12 @@
 - Любые server-side правки placement, unit, cron или path для `okdesk-pipeline` требуют explicit approve.
 - Internal cron models live = `bridge/claude-opus-4-6`; internal interactive default-chain live = `bridge/claude-sonnet-4-6` с fallback-цепочкой из `model-strategy.json`.
 - External live routing = `anthropic/claude-haiku-4-5 -> openai/gpt-5`.
+- Internal default-chain master = `model-strategy.json`; internal `openclaw.json` это effective runtime, а не единственный master.
+- Internal cron declarative master = `model-strategy.json`; internal cron effective runtime = `jobs.json`.
+- External Boris chain master = external `fix-model-strategy.py`; external `openclaw.json` это effective runtime, а не master.
+- Internal cron periodic sync в `jobs.json` подтверждён слабее, чем external fixer layer: startup sync подтверждён, но явный periodic enforcer для `jobs.json` не зафиксирован так же прямо, как для external.
+- `circuit-breaker-internal.py` по inspected code не считать source of truth для cron models; он мутирует `openclaw.json`, но не подтверждён как owner/master для `jobs.json`.
+- Model routing contour сейчас классифицирован как layered split с operational risk, а не как подтверждённая runtime failure.
 - Live prompt/memory paths: `.openclaw/SOUL.md` отсутствует; live rules source of truth на S1 = `/data/.openclaw/workspace/memory/RULES.md`.
 - `/data/.openclaw/memory` в live используется как storage/DB path, а не как rules path.
 - `CLAUDE.md` в live не является master-источником правил; он только ссылается на `workspace/memory/RULES.md`.

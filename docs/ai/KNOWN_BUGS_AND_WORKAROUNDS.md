@@ -27,10 +27,10 @@
 - статус: mitigated.
 
 ### Model routing documentation mismatch
-- симптом: snapshot docs расходятся с live-аудитом по model routing для internal cron и External Boris.
+- симптом: snapshot docs расходятся с live-аудитом по model routing для internal cron и External Boris, а source of truth по routing split по слоям.
 - где проявляется: безопасное планирование изменений моделей.
-- workaround: для repo planning использовать audit-backed facts: internal cron=`bridge/claude-opus-4-6`, external=`anthropic/claude-haiku-4-5 -> openai/gpt-5`; для более нового live-состояния требовать `SERVER_AUDIT_REQUIRED`.
-- что нельзя делать: менять model routing по одному snapshot-документу.
+- workaround: для repo planning использовать layered audit-backed facts: internal default-chain master=`model-strategy.json`, internal cron declarative master=`model-strategy.json` и effective runtime=`jobs.json`, external chain master=external `fix-model-strategy.py` и effective runtime=external `openclaw.json`; internal cron=`bridge/claude-opus-4-6`, external=`anthropic/claude-haiku-4-5 -> openai/gpt-5`; для более нового live-состояния требовать `SERVER_AUDIT_REQUIRED`.
+- что нельзя делать: считать internal `openclaw.json`, `jobs.json` или external `openclaw.json` единственным master, считать `circuit-breaker-internal.py` source of truth для cron models или менять routing по одному snapshot-документу.
 - статус: active.
 
 ### Workflow status drift in docs

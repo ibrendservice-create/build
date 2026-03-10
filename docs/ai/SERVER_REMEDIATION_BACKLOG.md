@@ -5,6 +5,7 @@
 - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`
 - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`
 - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`
+- `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`
 - `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`
 
 ## 1. Already fixed
@@ -80,6 +81,17 @@
   - gateway/Docling assumptions описаны как docs drift, не как live defect
   - backlog больше не держит этот contour в pending server-side fixes
 
+### Model routing layering documented in canon
+- Проблема: snapshot docs и часть канона раньше описывали модели по значениям, но не раскладывали source of truth по слоям для internal defaults, internal cron и External Boris.
+- Риск: принять effective runtime file за master и вносить server-side изменения не в тот слой.
+- Source of truth: `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`.
+- Минимальное исправление: в canonical docs зафиксировано, что internal default-chain master = `model-strategy.json`, internal cron declarative master = `model-strategy.json` и effective runtime = `jobs.json`, external chain master = external `fix-model-strategy.py`, а external `openclaw.json` = effective runtime.
+- Rollback: откатить docs-only updates, которые добавляют model routing layering в канон.
+- Post-check:
+  - canonical docs больше не описывают internal `openclaw.json`, `jobs.json` или external `openclaw.json` как единственный master;
+  - `circuit-breaker-internal.py` не описан как source of truth для cron models;
+  - model routing layering описан как operational risk, а не как runtime failure.
+
 ## 3. Next server-side fixes by priority
 
 ### Cron / timer housekeeping
@@ -110,11 +122,13 @@
 ### Model routing normalization
 - Проблема: live routing split между `model-strategy.json`, internal `openclaw.json`, `jobs.json` и external `openclaw.json`; snapshot docs устарели по cron и External Boris.
 - Риск: поломка internal cron, external Boris или fallback-chain при правке не того master-слоя.
-- Source of truth: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`.
-- Минимальное исправление: сначала зафиксировать intended cron override и intended external chain; потом при необходимости править только один master-слой за раз.
+- Source of truth: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`.
+- Минимальное исправление: сначала зафиксировать intended cron override и intended external chain; потом при необходимости править только один master-слой за раз, не считая internal `openclaw.json`, `jobs.json` или external `openclaw.json` единственным master.
+- Дополнительный риск: periodic enforcer для internal `jobs.json` подтверждён слабее, чем external fixer layer; `circuit-breaker-internal.py` не считать source of truth для cron models.
 - Rollback: timestamped backup `model-strategy.json`, internal/external `openclaw.json` и `jobs.json` с возвратом исходных версий.
 - Post-check:
   - `jq` на все model files
+  - сверка layering: default-chain vs cron vs external
   - сравнение providers/fallbacks
   - controlled cron/manual invocation для internal и external
 

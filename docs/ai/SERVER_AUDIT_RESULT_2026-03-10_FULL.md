@@ -32,14 +32,21 @@
 
 **Что найдено**
 - Internal `model-strategy.json` живой: primary=`bridge/claude-sonnet-4-6`, fallbacks=`gpt-5/codex/...`.
-- Internal `openclaw.json` отражает эту default-chain.
+- Internal `openclaw.json` отражает эту default-chain, но не является единственным master.
 - В `jobs.json` 13 cron jobs, и все явно используют `bridge/claude-opus-4-6`.
 - External live routing = `anthropic/claude-haiku-4-5 -> openai/gpt-5`.
+- Последующий narrow audit подтвердил layering source of truth:
+  - internal default-chain master = `model-strategy.json`, effective runtime = internal `openclaw.json`;
+  - internal cron declarative master = `model-strategy.json`, effective runtime = `jobs.json`;
+  - external chain master = external `fix-model-strategy.py`, effective runtime = external `openclaw.json`.
 
 **Красные флаги**
 - Live расходится с snapshot docs: internal crons не `claude-sonnet-4-6`, а `claude-opus-4-6`.
 - External Boris не `gpt-4o/codex`, а `haiku -> gpt-5`.
-- Source of truth для cron split: defaults живут в strategy/openclaw, а cron model override живет в `jobs.json`.
+- Source of truth для model routing не single-master: это layered split по слоям.
+- Internal cron periodic sync для `jobs.json` подтверждён слабее, чем external fixer layer: startup sync подтверждён, но periodic enforcer для `jobs.json` не доказан так же явно.
+- `circuit-breaker-internal.py` по inspected code не подтверждён как source of truth для cron models.
+- Это operational risk по source-of-truth layering, но не доказанная runtime failure.
 
 **PASS / WARN / FAIL**
 - `WARN`
@@ -183,7 +190,7 @@
 
 ## What can be fixed in repo only
 - Зафиксировать в каноне placement `okdesk-pipeline`: `S2` как runtime host, `S2 unit + S2 cron calls + S2 :3200` как live runtime source of truth, `S1` как stale path/symlink без competing runtime.
-- Зафиксировать live model routing: internal cron = `bridge/claude-opus-4-6`, external = `claude-haiku-4-5 -> gpt-5`.
+- Зафиксировать layered source of truth для model routing: internal default-chain master=`model-strategy.json`, internal cron declarative master=`model-strategy.json` и effective runtime=`jobs.json`, external chain master=external `fix-model-strategy.py` и effective runtime=external `openclaw.json`; отдельно зафиксировать, что `circuit-breaker-internal.py` не считать source of truth для cron models.
 - Исправить prompt/memory paths: нет `.openclaw/SOUL.md`, `RULES.md` живет в `workspace/memory`.
 - Исправить bridge/gateway docs: Caddyfile = `/etc/caddy/Caddyfile`, `8443` local health = `http`, `sites-enabled` сейчас regular files, и active checks уже соответствуют этим live-фактам.
 - Исправить integration docs: active checks не требуют host `:5001` для Docling, а workflow reconciliation делать по workflow id с текущим live state: `WF11/WF8 Watchdog=inactive`, `Email Attachment Parser=inactive`.
