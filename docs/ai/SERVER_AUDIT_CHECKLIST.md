@@ -31,6 +31,7 @@
 - SSH-порты, базовые ресурсы, listening ports.
 - Стандарт директорий и symlink-и.
 - Базовую связность S1->S2.
+- Отдельно отличать alias-проверку `ssh s2` от реальной live-проверки по IP.
 
 **Команды**
 ```bash
@@ -40,15 +41,23 @@ ssh s1 'ss -ltn | egrep ":58536|:80|:443|:8443|:3100|:3102|:15432|:55228|:18790"
 ssh s2 'ss -ltn | egrep ":22|:80|:443|:5678|:5001|:15432|:3300|:3301|:3200|:3100"'
 ssh s1 'stat -c "%a %U:%G %n" /etc/apps/secrets; readlink -f /docker/openclaw-kbxr /opt/knowledge-bus /opt/claude-bridge /opt/okdesk-pipeline /opt/ops-hub'
 ssh s2 'stat -c "%a %U:%G %n" /etc/apps/secrets; readlink -f /opt/app /opt/knowledge-bus /opt/claude-bridge /opt/n8n-doctor /opt/okdesk-executors'
-ssh s1 'timeout 5 ssh -o BatchMode=yes s2 "hostname -f"'
+ssh s1 'timeout 5 ssh -o BatchMode=yes s2 "hostname -f" || true'
+ssh s1 'ip route get 72.56.98.52'
+ssh s1 'nc -zvw5 72.56.98.52 22'
+ssh s1 'timeout 7 ssh -o BatchMode=yes -o PreferredAuthentications=publickey -o ConnectTimeout=5 root@72.56.98.52 "hostname -f"'
 ```
+
+**Примечание**
+- `ssh s2` зависит от локального alias или DNS и не считается надёжной live-проверкой сам по себе.
+- Для S1 -> S2 каноническая read-only проверка связности: маршрут до `72.56.98.52`, TCP-доступ к `72.56.98.52:22` и SSH по IP `root@72.56.98.52`.
+- Если `ssh s2` не работает, но маршрут, TCP и SSH по IP рабочие, это `WARN` по alias/drift, а не `FAIL` по сети.
 
 **Норма**
 - SSH доступ есть.
 - Ожидаемые порты слушают.
 - `S1 /etc/apps/secrets` имеет `711`, `S2` `751`.
 - Symlink-и ведут в `/opt/apps/*`.
-- S1->S2 доступ работает.
+- S1->S2 доступ по IP `72.56.98.52` работает.
 - Диск S2 не в критической зоне.
 
 **Красные флаги**
@@ -57,7 +66,10 @@ ssh s1 'timeout 5 ssh -o BatchMode=yes s2 "hostname -f"'
 - Сломанные symlink-и.
 - `secrets` dir mode не совпадает.
 - S2 диск близок к заполнению.
-- S1->S2 SSH не работает.
+- Нет маршрута до `72.56.98.52`.
+- Нет TCP-доступа до `72.56.98.52:22`.
+- SSH по IP `root@72.56.98.52` не работает.
+- `ssh s2` не работает при рабочем IP-пути: это alias/drift `WARN`, а не сетевой `FAIL`.
 
 ## Слой: контейнеры и процессы
 **Что проверять**
