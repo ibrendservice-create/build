@@ -48,10 +48,10 @@
 - статус: active.
 
 ### Prompt and memory path drift
-- симптом: snapshot docs описывают `.openclaw/SOUL.md` и `.openclaw/memory/RULES.md`, но live-аудит их не подтверждает.
+- симптом: snapshot docs описывают `.openclaw/SOUL.md` и `.openclaw/memory/RULES.md`, но live-аудит подтверждает другой rules path и отсутствие `SOUL.md`.
 - где проявляется: prompt/bootstrap planning и memory-related changes.
-- workaround: для repo planning считать live-path `.openclaw/workspace/memory/RULES.md`; отсутствие `.openclaw/SOUL.md` отражать как drift.
-- что нельзя делать: менять prompt/memory контур по snapshot docs без новой live-проверки.
+- workaround: для repo planning считать live source of truth на S1 = `/data/.openclaw/workspace/memory/RULES.md`; `/data/.openclaw/memory` трактовать как storage/DB path; `CLAUDE.md` считать operational context file, а не master-источником правил.
+- что нельзя делать: восстанавливать `.openclaw/SOUL.md`, переносить `RULES.md` в `.openclaw/memory` или менять prompt/memory layout по snapshot docs без новой live-проверки и approve.
 - статус: active.
 
 ### Gateway and file path drift

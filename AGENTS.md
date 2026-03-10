@@ -12,7 +12,8 @@
 6. `docs/ai/KNOWN_BUGS_AND_WORKAROUNDS.md`
 7. `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`
 8. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`
-9. `docs/ai/HANDOFF_2026-03-10.md`
+9. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`
+10. `docs/ai/HANDOFF_2026-03-10.md`
 
 Внешние audit docs:
 - `Boris-Detail-Schema.txt` использовать только если файл явно дан для аудита.
@@ -20,7 +21,7 @@
 
 ## Canon vs snapshot docs
 - Канон repo: `docs/ai/OPERATING_CONSENSUS.md` и policy-файлы из `docs/ai/*`.
-- Dated audit docs: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md` и `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`.
+- Dated audit docs: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md` и `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`.
 - Snapshot docs: `docs/ai/HANDOFF_2026-03-10.md` и внешний `Boris-Detail-Schema.txt`.
 - При конфликте docs не угадывай и не выбирай "правильную" версию по памяти; помечай `SERVER_AUDIT_REQUIRED`.
 - Если dated audit docs и snapshot docs расходятся, для уже проверенных live-фактов опирайся на канон и dated audit docs, не переписывая snapshot docs.

@@ -12,6 +12,7 @@
 - обязательная post-change verification;
 - не читать и не выводить секреты;
 - не трогать auth, routing, gateway, bridge, monitoring и destructive actions без approve.
+- любые server-side изменения prompt/memory layout только с approve.
 - при конфликте snapshot docs и dated audit docs не угадывать; использовать канон repo и при необходимости помечать `SERVER_AUDIT_REQUIRED`.
 
 ## Рабочий порядок
@@ -30,7 +31,10 @@
 - `okdesk-pipeline` реально active на S2; это drift относительно `HANDOFF`.
 - Internal cron models live = `bridge/claude-opus-4-6`.
 - External live routing = `anthropic/claude-haiku-4-5 -> openai/gpt-5`.
-- Live prompt/memory paths: `.openclaw/SOUL.md` отсутствует; `RULES.md` живет в `.openclaw/workspace/memory/RULES.md`.
+- Live prompt/memory facts: `.openclaw/SOUL.md` отсутствует; live rules source of truth на S1 = `/data/.openclaw/workspace/memory/RULES.md`.
+- `/data/.openclaw/memory` в live это storage/DB path, не rules path.
+- `CLAUDE.md` в live не является master-источником правил; он ссылается на `workspace/memory/RULES.md`.
+- Prompt/memory расхождение со snapshot docs пока классифицировано как docs drift, а не как runtime failure.
 - Live gateway/file paths: Caddyfile = `/etc/caddy/Caddyfile`; `sites-enabled` на S1 = regular files; local `8443` health = `http`.
 - Live Docling доступен внутри docker-сети и не обязан публиковать host `:5001`.
 - Live workflow statuses, подтвержденные аудитом: WF3 `active`, WF8 relay `active`, WF10 `active`, WF11 `inactive`, WF8 Watchdog `inactive`.
@@ -39,4 +43,5 @@
 ## Как использовать эти deltas
 - Это repo-visible память, основанная на read-only аудите `2026-03-10`.
 - Если `HANDOFF` или внешний schema-файл расходятся с этими пунктами, считать это snapshot drift.
+- Для prompt/memory контура не считать `CLAUDE.md` или `.openclaw/memory/` master-источником правил без нового live-аудита.
 - Если задача зависит от более нового live-состояния, требуется `SERVER_AUDIT_REQUIRED`.
