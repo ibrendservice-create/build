@@ -20,6 +20,19 @@
   - `ssh -G s2 | egrep "^(hostname|user) "`
   - `ssh -o BatchMode=yes s2 "hostname -f"`
 
+### S1 stale timers disabled safely
+- Что это: safe disable для двух stale timers на `S1`:
+  - `boris-email-router.timer`
+  - `chief-doctor.timer`
+- Почему не осталось: owner принял решение `legacy candidate, not repair`; apply уже выполнен, timers переведены в `disabled + inactive`, связанные services не тронуты.
+- Нужен ли apply: нет, apply уже выполнен успешно.
+- Риск: повторное вмешательство может только случайно re-enable legacy contour или затронуть соседние services.
+- Rollback: `systemctl enable ...timer` + `systemctl start ...timer` или file-level restore из backup `/root/backup/timer-disable-20260310-234654`.
+- Post-check:
+  - `systemctl is-enabled boris-email-router.timer chief-doctor.timer`
+  - `systemctl is-active boris-email-router.timer chief-doctor.timer`
+  - `systemctl status boris-email-router.service chief-doctor.service`
+
 ## 2. Docs-only resolved
 
 ### Canon aligned with audited live drift
@@ -116,22 +129,11 @@
 
 ## 4. Remaining server-side actions truly still needed
 
-### Cron / timer housekeeping
-- Что это: единственный реально незакрытый server-side contour после аудитов и принятых owner decisions.
-- Почему осталось: в live подтверждены два реально stale timers на `S1`: `boris-email-router.timer` и `chief-doctor.timer`, оба в состоянии `enabled + active(elapsed) + no next trigger`. Это требует owner decision и не снимается docs-only update. `Дайджест развития — Канал мастеров` в `jobs.json` при этом не считается broken: он `enabled`, имеет `nextRunAtMs` и сейчас трактуется как `not yet run`. На `S2` этот housekeeping contour живет через `crontab`, а не через `systemd timers`.
-- Нужен ли apply: да, но только после отдельного confirm/approve по двум timers: это еще нужные periodic contours или уже legacy. По weekly digest apply не нужен, если не меняется intended weekly behavior.
-- Риск: включить legacy timer, удалить нужный timer или перепутать stale timers с harmless first-run-pending cron state.
-- Rollback:
-  - восстановить прежний `crontab`;
-  - вернуть прежнее состояние timer units;
-  - восстановить исходный `jobs.json` из timestamped backup.
-- Post-check:
-  - `systemctl list-timers --all`
-  - `systemctl show boris-email-router.timer chief-doctor.timer`
-  - `jq` state fields в `jobs.json`
-  - отсутствие новых ошибок в timer/service logs
-  - подтвержденный intended state именно для двух stale timers
-  - `Дайджест развития — Канал мастеров` не принят ошибочно за broken job только из-за `lastStatus=null`
+На текущий момент подтвержденных remaining server-side actions больше нет.
+
+- `boris-email-router.timer` и `chief-doctor.timer` уже безопасно отключены по owner decision.
+- `Дайджест развития — Канал мастеров` оставлен как есть и не считается broken.
+- Если позже появится новый live drift после `2026-03-10`, нужен новый read-only audit перед любым apply.
 
 ## 5. Optional housekeeping only
 

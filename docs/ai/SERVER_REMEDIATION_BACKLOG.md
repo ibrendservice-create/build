@@ -20,6 +20,17 @@
   - `ssh -G s2 | egrep "^(hostname|user) "`
   - `ssh -o BatchMode=yes s2 "hostname -f"`
 
+### S1 stale timers disabled
+- Проблема: `boris-email-router.timer` и `chief-doctor.timer` на `S1` были подтверждены как `enabled + active(elapsed) + no next trigger`, то есть real stale timer state.
+- Риск: silent failure двух periodic contours и ложное ощущение, что background automation всё ещё работает.
+- Source of truth: `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md`, `docs/ai/SERVER_CHANGELOG_2026-03-10_DISABLE_STALE_TIMERS.md`.
+- Минимальное исправление: по owner decision `legacy candidate, not repair` выполнен только safe disable двух timers на `S1`; related services, `crontab`, `jobs.json` и `S2` не менялись.
+- Rollback: `systemctl enable` + `systemctl start` для двух timers или file-level restore из backup `/root/backup/timer-disable-20260310-234654`.
+- Post-check:
+  - `systemctl is-enabled boris-email-router.timer chief-doctor.timer`
+  - `systemctl is-active boris-email-router.timer chief-doctor.timer`
+  - `systemctl status boris-email-router.service chief-doctor.service`
+
 ## 2. Docs-only resolved
 
 ### Canon aligned with audited live drift
@@ -94,18 +105,10 @@
 
 ## 3. Next server-side fixes by priority
 
-### Cron / timer housekeeping
-- Проблема: `boris-email-router.timer` и `chief-doctor.timer` на `S1` подтверждены как `enabled + active(elapsed) + no next trigger`; это уже не просто `stale-looking`, а реальный stale timer state. `Дайджест развития — Канал мастеров` в `jobs.json` при этом `enabled`, имеет `nextRunAtMs` и пока выглядит как `not yet run`, а не как broken job.
-- Риск: silent failure двух periodic contours на `S1`, потеря автоматических проверок или ложное ощущение, что эти timers реально продолжают работать.
-- Source of truth: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md`.
-- Минимальное исправление: owner должен отдельно подтвердить intended state для `boris-email-router.timer` и `chief-doctor.timer`: это еще нужные periodic contours или уже legacy. Weekly digest job server-side apply не требует, если не меняется intended weekly behavior. На `S2` этот contour считать crontab-based, а не timer-based.
-- Rollback: restore previous crontab, timer state и `jobs.json`.
-- Post-check:
-  - `systemctl list-timers --all`
-  - `systemctl show boris-email-router.timer chief-doctor.timer`
-  - `jq` state fields в `jobs.json`
-  - отсутствие новых ошибок в timer/service logs
-  - `Дайджест развития — Канал мастеров` не переведен ошибочно в broken state только из-за `lastStatus=null`
+На текущий момент подтвержденных next server-side fixes по этому backlog больше нет.
+
+- `boris-email-router.timer` и `chief-doctor.timer` уже выведены из remaining actions через safe disable.
+- `Дайджест развития — Канал мастеров` оставлен без apply и не считается broken cron.
 
 ## 4. Approve-only fixes
 
