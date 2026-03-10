@@ -1,0 +1,231 @@
+# FINAL REMAINING ACTIONS
+
+Итоговый документ после:
+- полного server read-only аудита;
+- узких addendum-аудитов;
+- docs-only нормализации канона;
+- принятых owner decisions по workflow state, `okdesk-pipeline` placement и model routing architecture.
+
+Цель документа: оставить только реально незакрытые действия и убрать то, что уже исправлено, закрыто docs-only или принято как текущая норма без server-side apply.
+
+## 1. Already fixed
+
+### S1 -> S2 alias `s2` on S1
+- Что это: low-risk fix для SSH alias `s2` на `S1`.
+- Почему не осталось: проблема была alias drift, а не network failure; alias уже добавлен и post-check пройден.
+- Нужен ли apply: нет, apply уже выполнен успешно.
+- Риск: повторный ручной rework может только заново внести drift.
+- Rollback: восстановить `/root/.ssh/config` из backup `/root/.ssh/config.bak-20260310-194511` или удалить только block `Host s2`.
+- Post-check:
+  - `ssh -G s2 | egrep "^(hostname|user) "`
+  - `ssh -o BatchMode=yes s2 "hostname -f"`
+
+## 2. Docs-only resolved
+
+### Canon aligned with audited live drift
+- Что это: canonical docs приведены к verified live facts без переписывания snapshot docs как live master.
+- Почему не осталось: drift уже перенесен в канон repo, поэтому отдельный server-side apply не нужен.
+- Нужен ли apply: нет.
+- Риск: вернуться к planning по snapshot docs вместо audited canon.
+- Rollback: откатить соответствующие docs-only commits, если когда-либо потребуется вернуться к состоянию до аудитов.
+- Post-check:
+  - canonical docs отделяют audited live facts от snapshot docs;
+  - `HANDOFF_2026-03-10.md` не используется как live source of truth.
+
+### Prompt / memory source-of-truth normalized in docs
+- Что это: в docs закреплено, что live rules source of truth на `S1` = `/data/.openclaw/workspace/memory/RULES.md`, `/data/.openclaw/memory` это storage/DB path, `.openclaw/SOUL.md` отсутствует.
+- Почему не осталось: по аудиту это docs drift, а не runtime failure.
+- Нужен ли apply: нет.
+- Риск: ошибочно начать server-side cleanup layout без подтвержденной необходимости.
+- Rollback: откатить docs-only updates по prompt/memory канону.
+- Post-check:
+  - docs не называют `CLAUDE.md` master-источником правил;
+  - отсутствие `.openclaw/SOUL.md` помечено как docs drift.
+
+### Gateway / health-check assumptions normalized in docs
+- Что это: docs обновлены под live facts: `Caddyfile=/etc/caddy/Caddyfile`, local `8443` health по `http`, `sites-enabled` не обязаны быть symlink, Docling не требует host `:5001`.
+- Почему не осталось: read-only locate подтвердил, что active server-side checks уже соответствуют live.
+- Нужен ли apply: нет.
+- Риск: делать лишний apply в `gateway` или `monitoring` по уже закрытому docs drift.
+- Rollback: откатить docs-only updates по этому контуру.
+- Post-check:
+  - backlog больше не держит этот contour как pending server-side fix;
+  - gateway assumptions в docs совпадают с live locate.
+
+### Workflow state documented by exact workflow IDs
+- Что это: live workflow state закреплен в docs по exact workflow IDs, а не только по названиям.
+- Почему не осталось: docs drift уже закрыт на уровне документации и reconciliation rules.
+- Нужен ли apply: нет.
+- Риск: будущая сверка только по названиям может снова дать ложный drift.
+- Rollback: откатить docs-only updates по workflow audit.
+- Post-check:
+  - docs требуют reconciliation по workflow id;
+  - live state зафиксирован как `WF3/WF8 relay/WF10/Telegram Logger/WF Watchdog=active`, `WF11/WF8 Watchdog/Email Attachment Parser=inactive`.
+
+### okdesk-pipeline placement normalized in docs
+- Что это: в docs закреплено, что canonical placement `okdesk-pipeline` = `S2`, а `S1` это stale path/symlink, не runtime host.
+- Почему не осталось: narrow audit снял гипотезу про runtime split; это docs drift с operational risk, но не активный runtime conflict.
+- Нужен ли apply: нет.
+- Риск: снова начать deploy/rollback planning по `S1`.
+- Rollback: откатить docs-only updates по placement.
+- Post-check:
+  - docs больше не описывают `S1` как runtime host;
+  - live source of truth в docs = `S2 unit + S2 cron calls + S2 :3200`.
+
+### Model routing layering documented in canon
+- Что это: канон теперь явно раскладывает source of truth для internal default-chain, internal cron и External Boris по слоям.
+- Почему не осталось: docs gap закрыт; separate server-side simplification сейчас не требуется.
+- Нужен ли apply: нет.
+- Риск: принять `openclaw.json` или `jobs.json` за единственный master и сломать routing не в том слое.
+- Rollback: откатить docs-only updates по model routing layering.
+- Post-check:
+  - docs различают declarative master и effective runtime;
+  - `circuit-breaker-internal.py` не описан как source of truth для cron models.
+
+## 3. Decisions accepted, no apply needed
+
+### Workflow states accepted as current norm
+- Что это: owner decisions приняты для `WF11=inactive`, `WF8 Watchdog=inactive`, `Email Attachment Parser=inactive/on-demand`.
+- Почему не осталось: live уже совпадает с этими состояниями; отдельный apply не нужен.
+- Нужен ли apply: нет.
+- Риск: позже ошибочно трактовать эти `inactive` состояния как drift и самовольно включить workflows.
+- Rollback: не требуется, потому что apply не выполняется.
+- Post-check:
+  - docs и backlog трактуют эти состояния как accepted current norm;
+  - любые будущие изменения workflow flags помечены как approve-only.
+
+### okdesk-pipeline canonical host accepted = S2
+- Что это: owner decision принят: runtime `okdesk-pipeline` остается на `S2`.
+- Почему не осталось: live уже соответствует решению; миграция или cleanup не нужны по умолчанию.
+- Нужен ли apply: нет.
+- Риск: попытка “допривести к handoff” через ненужный перенос сервиса.
+- Rollback: не требуется, пока server-side apply не запускается.
+- Post-check:
+  - docs и backlog описывают `S2` как canonical host;
+  - `S1` помечен только как stale path/symlink.
+
+### Model routing architecture accepted = keep layered split
+- Что это: owner decision принят: текущий layered split по model routing сохраняется, immediate live simplification не делается.
+- Почему не осталось: live уже работает в этой архитектуре; задача на consolidation сейчас не открывается.
+- Нужен ли apply: нет.
+- Риск: начать unplanned simplification и задеть internal cron, External Boris или failover logic.
+- Rollback: не требуется, пока server-side apply не запускается.
+- Post-check:
+  - backlog больше не трактует consolidation как обязательное следующее действие;
+  - docs описывают layered split как accepted live reality.
+
+## 4. Remaining server-side actions truly still needed
+
+### Cron / timer housekeeping
+- Что это: единственный реально незакрытый server-side contour после аудитов и принятых owner decisions.
+- Почему осталось: в live остаются stale-looking `boris-email-router.timer` и `chief-doctor.timer`, а job `Дайджест развития — Канал мастеров` в `jobs.json` еще ни разу не запускался; это не закрыто owner decisions и не снимается docs-only update.
+- Нужен ли apply: да, но только после отдельного confirm/approve, что это не legacy-сущности и их действительно нужно чинить, включать или удалять.
+- Риск: включить legacy timer, удалить нужный timer или изменить `jobs.json` state без понимания intended behavior.
+- Rollback:
+  - восстановить прежний `crontab`;
+  - вернуть прежнее состояние timer units;
+  - восстановить исходный `jobs.json` из timestamped backup.
+- Post-check:
+  - `systemctl list-timers`
+  - `jq` state fields в `jobs.json`
+  - отсутствие новых ошибок в cron/service logs
+  - подтвержденный intended state для weekly digest job и stale timers
+
+## 5. Optional housekeeping only
+
+### S1 stale okdesk-pipeline path cleanup
+- Что это: cleanup stale `S1` path/symlink, который больше не считается runtime host.
+- Почему не осталось: это не active runtime problem и не competing runtime.
+- Нужен ли apply: нет по умолчанию; только если owner отдельно захочет housekeeping.
+- Риск: удалить path, который ещё нужен для runbook, backup-логики или будущего deploy-процесса.
+- Rollback: вернуть symlink/path из backup или recreate его ровно в прежнем виде.
+- Post-check:
+  - на `S1` по-прежнему нет competing unit/process/port `:3200`;
+  - `S2` runtime остается рабочим.
+
+### Prompt / memory compatibility cleanup
+- Что это: потенциальное создание compatibility file для `.openclaw/SOUL.md` или иная перестройка prompt/memory layout.
+- Почему не осталось: live runtime failure не доказан; текущий layout стабилен.
+- Нужен ли apply: нет.
+- Риск: создать duplicate-source drift или сломать bootstrap без реальной причины.
+- Rollback: удалить compatibility file/symlink и вернуть исходный layout из backup.
+- Post-check:
+  - bootstrap/prompts load;
+  - отсутствие двух расходящихся master-paths.
+
+### Internal cron periodic enforcer hardening
+- Что это: возможное future-усиление periodic sync для internal `jobs.json`.
+- Почему не осталось: owner принял layered split как текущую норму, а нехватка stronger enforcer сейчас зафиксирована как operational risk, но не как доказанная runtime failure.
+- Нужен ли apply: нет по умолчанию.
+- Риск: вмешаться в routing layer без явной необходимости и зацепить cron model overrides.
+- Rollback: восстановить исходные `jobs.json`, `fix-model-strategy.py`, `circuit-breaker-internal.py`, startup/cron hooks из backup.
+- Post-check:
+  - internal cron models остаются ожидаемыми;
+  - не возникает unintended rewrite runtime routing.
+
+### Architectural migration of okdesk-pipeline
+- Что это: возможная будущая миграция `okdesk-pipeline` между `S2` и `S1`.
+- Почему не осталось: owner уже принял `S2` как canonical host; миграция сейчас не нужна.
+- Нужен ли apply: нет.
+- Риск: большой blast radius по `systemd`, `cron`, integration routes и rollback.
+- Rollback: вернуть unit, cron и routes на исходный хост.
+- Post-check:
+  - pipeline health;
+  - `S2 :3200`;
+  - интеграционные cron endpoints;
+  - отсутствие runtime split.
+
+## 6. Do not touch list
+
+### Workflow live flags and workflow logic
+- Что это: любые изменения `active/inactive`, logic, imports/exports или DB state в `n8n`.
+- Почему не осталось: current accepted workflow states уже совпадают с live; новых apply-задач здесь нет.
+- Нужен ли apply: нет, если нет отдельного explicit approval.
+- Риск: прямое изменение production behavior.
+- Rollback: только через DB snapshot/export restore и controlled workflow rollback.
+- Post-check:
+  - exact workflow IDs в `workflow_entity`;
+  - `n8n` executions и logs после любой approve-only операции.
+
+### okdesk-pipeline service state, placement, cron and deploy paths
+- Что это: любые server-side изменения unit, path, cron calls, deploy location или restart `okdesk-pipeline`.
+- Почему не осталось: canonical placement уже принят и live стабилен на `S2`.
+- Нужен ли apply: нет, если нет отдельного explicit approval.
+- Риск: accidental migration, cleanup не того path или остановка рабочего runtime.
+- Rollback: пофайловый restore unit/crontab/path changes из backup.
+- Post-check:
+  - `systemctl status okdesk-pipeline`
+  - `ss -ltn | grep :3200`
+  - рабочие `S2` cron calls на `localhost:3200`
+
+### Model routing files, fixers and startup hooks
+- Что это: любые изменения `model-strategy.json`, internal/external `openclaw.json`, `jobs.json`, `fix-model-strategy.py`, `circuit-breaker-internal.py`, startup scripts и related cron.
+- Почему не осталось: owner принял текущую layered architecture, а live routing уже документирован.
+- Нужен ли apply: нет, если нет отдельного explicit approval.
+- Риск: поломка internal default-chain, cron override, External Boris chain или bridge failover logic.
+- Rollback: restore всех затронутых routing files/scripts из timestamped backups.
+- Post-check:
+  - `jq` на routing files
+  - layering check: default-chain vs cron vs external
+  - controlled validation internal/external flows
+
+### Prompt / memory server-side layout
+- Что это: любые правки rules paths, loader paths, compatibility files и related bootstrap behavior на `S1`.
+- Почему не осталось: текущий layout stable; runtime failure не доказан.
+- Нужен ли apply: нет, если нет отдельного explicit approval.
+- Риск: duplicate-source drift или bootstrap regression.
+- Rollback: restore исходного prompt/memory tree из backup.
+- Post-check:
+  - live rules path остается однозначным;
+  - bootstrap читает ожидаемый rules file.
+
+### Gateway, bridge, auth, routing, monitoring, secrets and destructive actions
+- Что это: любые изменения вне узко подтвержденных docs-only drift-контуров.
+- Почему не осталось: active checks уже соответствуют live; серверный apply по этим зонам сейчас не требуется.
+- Нужен ли apply: нет, если нет отдельного explicit approval.
+- Риск: высокий blast radius и выход за пределы подтвержденных аудитов.
+- Rollback: только по заранее подготовленным backup и rollback plan для конкретного контура.
+- Post-check:
+  - layer-specific verification
+  - соседние контуры не деградировали
+  - secrets не были затронуты
