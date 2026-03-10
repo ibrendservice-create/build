@@ -1,48 +1,55 @@
 # Boris / OpenClaw project rules for Codex
 
 ## Scope
-- Работай только внутри этого репозитория.
-- Перед началом любой задачи сначала прочитай:
-  - docs/ai/PROJECT_MEMORY.md
-  - docs/ai/SOURCE_OF_TRUTH.md
-  - docs/ai/CHANGE_POLICY.md
-  - docs/ai/HANDOFF.md
+Работай только внутри этого репозитория.
 
-## Required workflow
-1. Сначала определи слой изменения и blast radius.
-2. Сначала найди source of truth.
-3. Не правь generated/runtime файлы, если есть master.
-4. Не смешивай задачу с широким рефакторингом.
-5. Всегда готовь backup и rollback.
-6. После изменений проверяй соседние контуры.
+Перед любой задачей прочитай:
 
-## Forbidden without explicit approval
-- Не трогать auth.
-- Не трогать routing.
-- Не трогать gateway.
-- Не трогать bridge.
-- Не трогать monitoring и self-healing.
-- Не делать destructive actions.
-- Не менять secrets, tokens, credentials.
-- Не перезапускать критичные сервисы без approve.
+docs/ai/PROJECT_MEMORY.md
+docs/ai/SOURCE_OF_TRUTH.md
+docs/ai/CHANGE_POLICY.md
+docs/ai/VERIFICATION_MATRIX.md
+docs/ai/KNOWN_BUGS_AND_WORKAROUNDS.md
+docs/ai/HANDOFF_2026-03-10.md
 
-## Verification standard
-После любого изменения проверить:
-- целевой компонент;
-- зависимости ниже;
-- зависимости выше;
-- routing и delivery;
-- hooks / cron / skills, если затронуты;
-- monitoring / self-healing;
-- config drift;
-- возможность rollback.
+## Core behavior
+- сначала проверка
+- потом изменение
+- сначала source of truth
+- потом runtime
+- сначала нижний слой
+- потом верхний
+- минимальные изменения
+- всегда rollback
+
+## Forbidden without approval
+Запрещено без approve:
+
+- auth
+- routing
+- gateway
+- bridge
+- monitoring
+- destructive actions
+- secrets / tokens
+- restart критичных сервисов
+- менять runtime вместо master
+
+## Workflow
+1 определить слой
+2 найти source of truth
+3 проверить риски
+4 минимальный план
+5 rollback
+6 изменение
+7 verification
+8 verdict
 
 ## Output format
-Всегда отвечай кратко:
-- слой;
-- source of truth;
-- риск;
-- план;
-- rollback;
-- post-check;
-- вердикт: SAFE / NEEDS APPROVAL / BLOCKED / RISKY.
+- слой
+- source of truth
+- риск
+- план
+- rollback
+- verification
+- verdict
