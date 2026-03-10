@@ -6,6 +6,8 @@
 @docs/ai/CHANGE_POLICY.md
 @docs/ai/VERIFICATION_MATRIX.md
 @docs/ai/KNOWN_BUGS_AND_WORKAROUNDS.md
+@docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md
+@docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md
 @docs/ai/HANDOFF_2026-03-10.md
 
 ## Role
@@ -16,8 +18,10 @@
 
 ## Canon vs snapshot docs
 - Канон repo: `docs/ai/OPERATING_CONSENSUS.md` и policy-файлы из `docs/ai/*`.
+- Dated audit docs: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md` и `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`.
 - Snapshot docs: `docs/ai/HANDOFF_2026-03-10.md` и внешний `Boris-Detail-Schema.txt`, если он явно дан для аудита.
 - При конфликте docs не угадывай и не выбирай "правильную" версию по памяти; помечай `SERVER_AUDIT_REQUIRED`.
+- Если dated audit docs и snapshot docs расходятся, для уже проверенных live-фактов опирайся на канон и dated audit docs, не переписывая snapshot docs.
 
 ## Core rules
 - Сначала проверка, потом изменение.
