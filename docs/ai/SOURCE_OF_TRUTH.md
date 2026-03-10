@@ -13,7 +13,7 @@
 - Эти документы нужны для аудита и поиска пробелов, но не заменяют live master.
 
 ## Repo-visible audited live facts
-- Для live-фактов, подтвержденных read-only аудитом `2026-03-10`, repo-visible source of truth = `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md` и `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`.
+- Для live-фактов, подтвержденных read-only аудитом `2026-03-10`, repo-visible source of truth = `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md` и `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`.
 - Это относится к:
   - live placement/status `okdesk-pipeline`;
   - live model routing для internal cron и External Boris;
@@ -22,6 +22,13 @@
   - live workflow statuses, явно проверенным в аудите;
   - S1 -> S2 alias drift vs network health.
 - Эти audit docs не заменяют live master после даты аудита; для более нового состояния нужен новый server audit.
+
+## okdesk-pipeline specifics
+- Для `okdesk-pipeline` canonical placement на дату аудита = `S2`.
+- Repo-visible live runtime source of truth по этому контуру = `S2 systemd unit + S2 cron calls + S2 listener :3200`, как это подтверждено в `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`.
+- `S1` по этому контуру не считать runtime host: аудит подтверждает только stale path/symlink без unit, process, `:3200` и cron calls.
+- Competing runtime между `S1` и `S2` на дату аудита не подтвержден.
+- Любые server-side правки placement, unit, cron или path для `okdesk-pipeline` требуют explicit approve.
 
 ## Gateway / health-check specifics
 - Для gateway/health-check контура repo-visible truth на дату аудита включает не только paths, но и locate-подтверждение active checks.

@@ -19,7 +19,8 @@
 - На S2 активны `caddy`, `claude-bridge`, `infra-monitor`, `n8n-doctor`, `okdesk-pipeline.service`.
 
 **Красные флаги**
-- Live противоречит snapshot docs: `okdesk-pipeline.service` реально запущен на S2, а не "не развернут".
+- Live противоречит snapshot docs: `okdesk-pipeline.service` реально запущен на `S2`, а не "не развернут".
+- Последующий placement-audit подтвердил, что это docs drift, а не runtime split между `S1` и `S2`.
 
 **PASS / WARN / FAIL**
 - `WARN`
@@ -130,7 +131,7 @@
 **Красные флаги**
 - `Дайджест развития — Канал мастеров` еще ни разу не запускался (`lastStatus=null`).
 - На S1 `boris-email-router.timer` и `chief-doctor.timer` есть, но без следующего запуска.
-- S2 cron еще раз подтверждает, что `okdesk-pipeline` реально живой, вопреки snapshot docs.
+- S2 cron еще раз подтверждает canonical placement `okdesk-pipeline` на `S2`, вопреки snapshot docs.
 
 **PASS / WARN / FAIL**
 - `WARN`
@@ -145,7 +146,7 @@
 - Docling health из сети n8n.
 
 **Что найдено**
-- На S1 есть только код `/opt/okdesk-pipeline -> /opt/apps/okdesk-pipeline`, но нет unit и нет `:3200`.
+- На S1 есть только stale path `/opt/okdesk-pipeline -> /opt/apps/okdesk-pipeline`, но нет unit и нет `:3200`.
 - На S2 есть активный `okdesk-pipeline.service` и `127.0.0.1:3200`.
 - Stack `n8n/db/cache/docling/bs24` живой.
 - Live workflow flags: WF3 `active`, WF8 Boris relay `active`, WF10 `active`, Telegram Logger `active`, WF Watchdog `active`, а WF11 `inactive`, Email Attachment Parser `inactive`, WF8 Watchdog `inactive`.
@@ -154,9 +155,11 @@
 - Docling отвечает `{"status":"ok"}` из docker-сети n8n.
 - Host `ss` на S2 показывает `5678`, `15432`, `3200`, `3300`, `3301`, но не `5001`.
 - Последующий read-only locate показал, что active checks для Docling идут через container/docker-network health и не требуют host `:5001`.
+- Последующий narrow audit по `okdesk-pipeline` подтвердил canonical placement на `S2`, live runtime source of truth = `S2 unit + S2 cron calls + S2 :3200`, а `S1` = stale path/symlink без competing runtime.
 
 **Красные флаги**
-- Главный live drift: `okdesk-pipeline` живет на S2 и работает, а snapshot docs пишут, что service не развернут.
+- Главный live drift: snapshot docs неверно описывают placement `okdesk-pipeline`; live runtime однозначно на `S2`.
+- Это docs drift с operational risk, но не active runtime split между `S1` и `S2`.
 - WF11 live `inactive`, хотя в snapshot docs он `Active`.
 - WF8 Watchdog live `inactive`.
 - Для `WF11` и `WF8 Watchdog` read-only аудит подтверждает docs drift, но не подтверждает runtime-аварию; перед apply нужен owner decision.
@@ -173,13 +176,13 @@
 - Сетевой вопрос `S1 -> S2` больше не считается активной проблемой; он resolved через alias fix на S1. Детали в `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`.
 
 ## What requires approve
-- Любые server-side изменения для `okdesk-pipeline`, `systemd`, `nginx`, `Caddy`, `bridge`, `routing`, `monitoring`, `self-healing`, `cron`, `timers`, `workflows`, `DB`.
+- Любые server-side изменения для `okdesk-pipeline`, включая placement, `systemd`, `cron`, path cleanup, а также правки `nginx`, `Caddy`, `bridge`, `routing`, `monitoring`, `self-healing`, `timers`, `workflows`, `DB`.
 - Любая правка live model routing: `model-strategy.json`, internal/external `openclaw.json`, `jobs.json`.
 - Любые изменения prompt/memory source of truth на S1.
 - Любой restart критичных сервисов или контейнеров.
 
 ## What can be fixed in repo only
-- Обновить snapshot docs, чтобы отразить live-факт: `okdesk-pipeline` развернут и active на S2.
+- Зафиксировать в каноне placement `okdesk-pipeline`: `S2` как runtime host, `S2 unit + S2 cron calls + S2 :3200` как live runtime source of truth, `S1` как stale path/symlink без competing runtime.
 - Зафиксировать live model routing: internal cron = `bridge/claude-opus-4-6`, external = `claude-haiku-4-5 -> gpt-5`.
 - Исправить prompt/memory paths: нет `.openclaw/SOUL.md`, `RULES.md` живет в `workspace/memory`.
 - Исправить bridge/gateway docs: Caddyfile = `/etc/caddy/Caddyfile`, `8443` local health = `http`, `sites-enabled` сейчас regular files, и active checks уже соответствуют этим live-фактам.

@@ -20,11 +20,11 @@
 - статус: mitigated.
 
 ### okdesk-pipeline deployment truth mismatch
-- симптом: snapshot docs расходятся с live-аудитом по расположению и состоянию деплоя `okdesk-pipeline`.
+- симптом: snapshot docs расходились с live-аудитом по placement и состоянию деплоя `okdesk-pipeline`.
 - где проявляется: deployment planning, audit, rollout decisions.
-- workaround: для repo planning считать audit-backed live-фактом `okdesk-pipeline active на S2`; для нового live-подтверждения позже даты аудита требовать `SERVER_AUDIT_REQUIRED`.
-- что нельзя делать: деплоить, перезапускать service или менять `DRY_RUN` только на основании snapshot docs.
-- статус: active.
+- workaround: для repo planning считать canonical placement = `S2`; live runtime source of truth = `S2 unit + S2 cron calls + S2 :3200`; `S1` трактовать как stale path/symlink, а не runtime host; для более нового live-состояния позже даты аудита требовать `SERVER_AUDIT_REQUIRED`.
+- что нельзя делать: считать `S1` runtime host, деплоить, перезапускать service, переносить placement или менять `DRY_RUN` только на основании snapshot docs.
+- статус: mitigated.
 
 ### Model routing documentation mismatch
 - симптом: snapshot docs расходятся с live-аудитом по model routing для internal cron и External Boris.

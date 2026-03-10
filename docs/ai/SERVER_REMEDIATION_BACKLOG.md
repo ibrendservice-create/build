@@ -4,6 +4,7 @@
 - `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`
 - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`
 - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`
+- `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`
 - `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`
 
 ## 1. Already fixed
@@ -30,6 +31,17 @@
   - `AGENTS.md` и `CLAUDE.md` читают один и тот же канон;
   - canonical docs отделяют audited facts от snapshot docs;
   - `HANDOFF_2026-03-10.md` не использован как live source of truth.
+
+### okdesk-pipeline placement normalized in canon
+- Проблема: snapshot docs описывали другой runtime-контур `okdesk-pipeline`, хотя live-аудит однозначно подтвердил runtime на `S2`.
+- Риск: работа не с тем host при audit/deploy/rollback и ложное предположение о runtime split между `S1` и `S2`.
+- Source of truth: `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`.
+- Минимальное исправление: в canonical docs закреплено, что placement `okdesk-pipeline` = `S2`, live runtime source of truth = `S2 unit + S2 cron calls + S2 :3200`, а `S1` = stale path/symlink, не runtime host.
+- Rollback: откатить docs-only updates, которые переносят placement drift в канон.
+- Post-check:
+  - canonical docs больше не описывают `S1` как runtime host `okdesk-pipeline`;
+  - competing runtime между `S1` и `S2` не заявляется без live-аудита;
+  - server-side placement changes помечены как approve-only.
 
 ### Prompt / memory source-of-truth aligned in canon
 - Проблема: snapshot docs описывали `.openclaw/SOUL.md` и `.openclaw/memory/RULES.md`, но live-аудит подтвердил другой rules path и отсутствие `SOUL.md`.
@@ -70,18 +82,6 @@
 
 ## 3. Next server-side fixes by priority
 
-### okdesk-pipeline canonical placement on S2
-- Проблема: live показывает `okdesk-pipeline.service` active на S2, а snapshot docs описывают другой контур.
-- Риск: работа не с тем runtime-host, дублирование сервиса или ошибочные rollout-действия на S1.
-- Source of truth: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`.
-- Минимальное исправление: формально закрепить S2 как текущий live-runtime, проверить отсутствие competing unit/process на S1 и сверить cron/endpoints, которые уже бьют в `localhost:3200` на S2.
-- Rollback: вернуть исходный unit-state и любые path/service changes на S2; если трогались crons или timers, откатить их отдельно.
-- Post-check:
-  - `systemctl status okdesk-pipeline`
-  - `ss -ltn | grep :3200`
-  - health endpoint pipeline
-  - S2 cron calls на `localhost:3200`
-
 ### Cron / timer housekeeping
 - Проблема: `boris-email-router.timer` и `chief-doctor.timer` выглядят stale, а `Дайджест развития — Канал мастеров` в `jobs.json` ещё ни разу не запускался.
 - Риск: silent failure фоновых задач, потеря автоматических проверок или ложное ощущение, что jobs реально выполняются.
@@ -94,6 +94,18 @@
   - отсутствие новых ошибок в cron/service logs
 
 ## 4. Approve-only fixes
+
+### okdesk-pipeline server-side placement changes
+- Проблема: live placement уже однозначно подтвержден на `S2`, но на `S1` остаётся stale path/symlink, который может провоцировать неверные server-side действия.
+- Риск: accidental deploy/restart/migration не на том host или разрушение рабочего pipeline-контура на `S2`.
+- Source of truth: `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`.
+- Минимальное исправление: server-side apply сейчас не нужен; если потребуется cleanup `S1` path, перенос placement, правка unit или cron, делать это только после explicit approve.
+- Rollback: для любого такого apply откатывать unit/crontab/path changes пофайлово из backup на затронутом сервере.
+- Post-check:
+  - `systemctl status okdesk-pipeline` на `S2`
+  - `ss -ltn | grep :3200` на `S2`
+  - отсутствие competing unit/process на `S1`
+  - рабочие `S2` cron calls на `localhost:3200`
 
 ### Model routing normalization
 - Проблема: live routing split между `model-strategy.json`, internal `openclaw.json`, `jobs.json` и external `openclaw.json`; snapshot docs устарели по cron и External Boris.
