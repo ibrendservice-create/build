@@ -74,3 +74,10 @@
 - workaround: отличать alias problem от network problem; использовать `root@72.56.98.52` как каноническую read-only проверку связности.
 - что нельзя делать: объявлять network `FAIL`, если сломан только alias `s2`.
 - статус: active.
+
+### Cron / timer housekeeping debt
+- симптом: `boris-email-router.timer` и `chief-doctor.timer` на `S1` = `enabled + active(elapsed) + no next trigger`; при этом `Дайджест развития — Канал мастеров` в `jobs.json` имеет `lastStatus=null`, но `enabled=true` и заданный `nextRunAtMs`.
+- где проявляется: housekeeping of background automation on `S1`, distinction between stale timers and first-run-pending cron jobs.
+- workaround: считать timers отдельным operational-risk contour и не смешивать его с `jobs.json`; для repo planning фиксировать, что оба timers требуют owner decision, а `Дайджест развития — Канал мастеров` сейчас трактуется как `not yet run`, не broken; на `S2` этот housekeeping contour crontab-based, а не timer-based.
+- что нельзя делать: автоматически считать weekly digest broken, а также автоматически чинить, отключать или удалять timers без owner decision и approve.
+- статус: active.

@@ -7,7 +7,7 @@
 - Только repo docs и project instruction files.
 - Runtime, server-side truth, live workflows и secrets находятся вне этого repo.
 - `docs/ai/HANDOFF_2026-03-10.md` и внешний `Boris-Detail-Schema.txt` используются для аудита, а не как live master.
-- `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md` и `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md` это dated audit docs: они фиксируют проверенные live-факты на дату аудита, но не заменяют live master после этой даты.
+- `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md` и `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md` это dated audit docs: они фиксируют проверенные live-факты на дату аудита, но не заменяют live master после этой даты.
 
 ## Canonical read order
 1. `docs/ai/OPERATING_CONSENSUS.md`
@@ -21,13 +21,14 @@
 9. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`
 10. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`
 11. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`
-12. `docs/ai/HANDOFF_2026-03-10.md`
-13. `Boris-Detail-Schema.txt` только если файл явно дан для аудита; сырой файл не копировать в repo.
+12. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md`
+13. `docs/ai/HANDOFF_2026-03-10.md`
+14. `Boris-Detail-Schema.txt` только если файл явно дан для аудита; сырой файл не копировать в repo.
 
 ## Document priority
 - `AGENTS.md` и `CLAUDE.md` это agent entry points; они должны ссылаться на один и тот же канон и не расходиться по правилам проекта.
 - Канон repo: этот файл плюс `docs/ai/PROJECT_MEMORY.md`, `docs/ai/SOURCE_OF_TRUTH.md`, `docs/ai/CHANGE_POLICY.md`, `docs/ai/VERIFICATION_MATRIX.md`, `docs/ai/KNOWN_BUGS_AND_WORKAROUNDS.md`.
-- Dated audit docs: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md` и `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`.
+- Dated audit docs: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md` и `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md`.
 - Snapshot docs: `docs/ai/HANDOFF_2026-03-10.md` и внешний `Boris-Detail-Schema.txt`.
 - Live server-side truth проверяется только вне repo.
 
@@ -94,6 +95,11 @@
 - `WF11` и `WF8 Watchdog` сейчас классифицированы как docs drift + owner decision before apply, а не как подтвержденная runtime-авария.
 - `Email Attachment Parser inactive` сейчас трактуется как норма, а не как drift.
 - S1 -> S2 проблема из первого аудита была alias drift; сеть и SSH по IP рабочие.
+- `boris-email-router.timer` на S1 = `enabled + active(elapsed) + Trigger:n/a`; `chief-doctor.timer` на S1 = `enabled + active(elapsed) + Trigger:n/a`.
+- Эти два timers сейчас классифицированы как `housekeeping debt` с `operational risk`, а не как docs drift.
+- По ним нужен owner decision before apply: это еще нужные periodic contours или уже legacy.
+- `Дайджест развития — Канал мастеров` в `jobs.json` = `enabled`, `nextRunAtMs` задан, `lastRunAtMs=null`; это сейчас трактуется как `not yet run`, а не как broken cron.
+- Для этого housekeeping-контура на S2 live опирается на `crontab`, а не на `systemd timers`.
 - Любые server-side изменения prompt/memory layout требуют explicit approve.
 
 ## Remaining unresolved contradictions

@@ -95,15 +95,17 @@
 ## 3. Next server-side fixes by priority
 
 ### Cron / timer housekeeping
-- Проблема: `boris-email-router.timer` и `chief-doctor.timer` выглядят stale, а `Дайджест развития — Канал мастеров` в `jobs.json` ещё ни разу не запускался.
-- Риск: silent failure фоновых задач, потеря автоматических проверок или ложное ощущение, что jobs реально выполняются.
-- Source of truth: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`.
-- Минимальное исправление: отдельно разобрать intended state для stale timers и weekly digest job; включать, удалять или чинить только после подтверждения, что это не legacy.
+- Проблема: `boris-email-router.timer` и `chief-doctor.timer` на `S1` подтверждены как `enabled + active(elapsed) + no next trigger`; это уже не просто `stale-looking`, а реальный stale timer state. `Дайджест развития — Канал мастеров` в `jobs.json` при этом `enabled`, имеет `nextRunAtMs` и пока выглядит как `not yet run`, а не как broken job.
+- Риск: silent failure двух periodic contours на `S1`, потеря автоматических проверок или ложное ощущение, что эти timers реально продолжают работать.
+- Source of truth: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md`.
+- Минимальное исправление: owner должен отдельно подтвердить intended state для `boris-email-router.timer` и `chief-doctor.timer`: это еще нужные periodic contours или уже legacy. Weekly digest job server-side apply не требует, если не меняется intended weekly behavior. На `S2` этот contour считать crontab-based, а не timer-based.
 - Rollback: restore previous crontab, timer state и `jobs.json`.
 - Post-check:
-  - `systemctl list-timers`
+  - `systemctl list-timers --all`
+  - `systemctl show boris-email-router.timer chief-doctor.timer`
   - `jq` state fields в `jobs.json`
-  - отсутствие новых ошибок в cron/service logs
+  - отсутствие новых ошибок в timer/service logs
+  - `Дайджест развития — Канал мастеров` не переведен ошибочно в broken state только из-за `lastStatus=null`
 
 ## 4. Approve-only fixes
 
