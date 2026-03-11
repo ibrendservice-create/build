@@ -112,6 +112,44 @@
   - `payload_job_drift=[]`
   - `boris-health-check.py` использует boolean helper-resolution check
 
+### Wave 0 Boris chat self-modification hard stop on S1
+- Что это: narrow live hard stop по official Boris chat-admin surfaces на `S1`.
+- Почему не осталось: apply уже выполнен успешно и закрыл exact official chat-admin keys:
+  - `commands.config: true -> false`
+  - `commands.restart: true -> false`
+  - `channels.telegram.configWrites: absent -> false`
+- Source of truth:
+  - `docs/ai/SERVER_CHANGELOG_2026-03-11_boris_wave0_chat_hardstop.md`
+  - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BORIS_CHAT_HARDENING.md`
+- Что это остановило:
+  - `/config*` from chat
+  - `/restart` from chat
+  - Telegram `/allowlist add|remove`
+  - Telegram config writes from chat
+- Что не менялось:
+  - `commands.ownerAllowFrom`
+  - `commands.native`
+  - `commands.nativeSkills`
+  - `channels.telegram.groupPolicy`
+  - `channels.telegram.replyToMode`
+  - HQ `requireMention`
+  - `route-command`
+  - `callback-forward`
+  - digest jobs
+  - model routing
+  - bridge / workflows / monitoring
+- Rollback: не потребовался; backup лежит в `/root/boris-wave0-chat-hardstop-20260311T191320Z`.
+- Post-check:
+  - changed path count = `3`
+  - only exact approved key paths changed
+  - `/config show` and `/config set` rejected
+  - `/restart` rejected
+  - `/allowlist add|remove` rejected
+  - `openclaw.json` hash remained unchanged after rejected `/config set`
+- Important limit:
+  - этот Wave 0 не закрыл custom `/route`
+  - `/route` остаётся отдельным remaining contour
+
 ## 2. Docs-only resolved
 
 ### Canon aligned with audited live drift
@@ -255,6 +293,24 @@
   - docs описывают layered split как accepted live reality.
 
 ## 4. Remaining server-side actions truly still needed
+
+### Separate `/route` persistent chat-routing closure on S1
+- Что это: отдельный next-wave hardening contour для custom `route-command`, который сейчас пишет `openclaw.json` из чата.
+- Почему осталось: official Wave 0 hard stop уже applied, но custom `/route` intentionally остался вне того scope и поэтому persistent chat-admin всё ещё не закрыт полностью.
+- Source of truth:
+  - `docs/ai/SERVER_CHANGELOG_2026-03-11_boris_wave0_chat_hardstop.md`
+  - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BORIS_CHAT_HARDENING.md`
+  - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_12_TOOLS_PLUGINS.md`
+- Почему это опасно:
+  - даже после successful Wave 0 Boris всё ещё может иметь persistent chat-write contour через `/route`
+- Почему это отдельный scope:
+  - рядом живут `callback-forward`, plugin loading and control-plane hooks
+  - здесь уже нужен отдельный owner decision и отдельный approve
+- Rollback:
+  - file-level restore plugin/config changes для exact plugin contour
+- Post-check:
+  - persistent routing write from chat больше недоступен
+  - `callback-forward` и соседний control-plane contour не сломаны
 
 ### HQ Telegram requireMention stabilization on S1
 - Что это: узкий live fix для Штаба в Telegram group/chat `-1002799098412`.

@@ -11,8 +11,10 @@
 - `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`
 - `docs/ai/DOCTOR_AGENT_DECISION.md`
 - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TENDER_SPECIALIST.md`
+- `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BORIS_CHAT_HARDENING.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-11_bridge2_subscription_fix.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-11_tg_helper_token_hardening.md`
+- `docs/ai/SERVER_CHANGELOG_2026-03-11_boris_wave0_chat_hardstop.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-11_HQ_REQUIRE_MENTION_FAILED.md`
 - `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`
 
@@ -195,6 +197,46 @@
   - `py_compile` passed for both files
   - `boris-health-check.py` now uses helper-resolution boolean check
 
+### S1 Boris Wave 0 chat-admin hard stop applied
+- Проблема: official Boris chat-admin surfaces на `S1` оставались live через:
+  - `commands.config=true`
+  - `commands.restart=true`
+  - `channels.telegram.configWrites` effectively enabled because it was not explicitly disabled
+- Риск: persistent config mutation и chat-triggered restart оставались возможными через official Telegram/chat contour.
+- Source of truth: `docs/ai/SERVER_CHANGELOG_2026-03-11_boris_wave0_chat_hardstop.md`.
+- Минимальное исправление:
+  - changed only `/var/lib/apps-data/openclaw/data/.openclaw/openclaw.json`
+  - `commands.config: true -> false`
+  - `commands.restart: true -> false`
+  - `channels.telegram.configWrites: absent -> false`
+- Что не менялось:
+  - `commands.ownerAllowFrom`
+  - `commands.native`
+  - `commands.nativeSkills`
+  - `channels.telegram.groupPolicy`
+  - `channels.telegram.replyToMode`
+  - HQ `requireMention`
+  - `route-command`
+  - `callback-forward`
+  - digest jobs
+  - model routing
+  - bridge / workflows / monitoring
+- Rollback: не потребовался; backup = `/root/boris-wave0-chat-hardstop-20260311T191320Z`.
+- Post-check:
+  - changed path count = `3`
+  - exact required values now:
+    - `commands.config=false`
+    - `commands.restart=false`
+    - `channels.telegram.configWrites=false`
+  - adjacent fields unchanged
+  - `/config show` rejected
+  - `/config set` rejected
+  - `/restart` rejected
+  - `/allowlist add|remove` rejected
+  - rejected `/config set` did not change `openclaw.json` hash
+- Important limit:
+  - `/route` intentionally remained open and is the next separate hardening contour
+
 ## 2. Docs-only resolved
 
 ### Canon aligned with audited live drift
@@ -361,6 +403,19 @@
 - `Дайджест развития — Канал мастеров` оставлен без apply и не считается broken cron.
 
 ## 4. Approve-only fixes
+
+### Separate `/route` persistent chat-routing closure on S1
+- Проблема: custom `route-command` остаётся отдельным persistent chat-write contour и пишет `openclaw.json` из чата.
+- Риск: even after successful Wave 0 official chat-admin hard stop persistent chat-admin не будет закрыт полностью, потому что `/route` живёт вне official `/config` surface.
+- Source of truth:
+  - `docs/ai/SERVER_CHANGELOG_2026-03-11_boris_wave0_chat_hardstop.md`
+  - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BORIS_CHAT_HARDENING.md`
+  - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_12_TOOLS_PLUGINS.md`
+- Минимальное исправление: делать только отдельным approved wave с plugin/control-plane review; не смешивать с Wave 0, потому что рядом живут plugin loading, `callback-forward` и related hooks.
+- Rollback: file-level/plugin-level restore exact contour from timestamped backups.
+- Post-check:
+  - persistent routing write from chat is gone
+  - `callback-forward` and neighboring control-plane behavior stay intact
 
 ### pg-tunnel-s2 contingency contour on S1
 - Проблема: на `S1` остаётся `pg-tunnel-s2.service`, но weekly narrow audit подтвердил, что current Boris PG mode = `local`, current backend = `boris-emails-pg-1`, а tunnel конфликтует с local PG по `172.18.0.1:15432`.
