@@ -142,16 +142,21 @@
   - docs явно фиксируют current coverage profile = strong infra / partial BS24 business-liveness / weak semantic correctness;
   - dangerous contours перечислены отдельно и не описываются как safe defaults.
 
-### Observer doctor-agent MVP decision documented
-- Что это: в docs зафиксировано, что безопасный MVP observer doctor-agent для Бориса = `skill + script`, `manual only`, `read-only`, `report only`, `no auto-repair`, без `cron`/`heartbeat`/`workflow` формы на MVP.
-- Почему не осталось: это docs-only decision boundary по `docs/ai/DOCTOR_AGENT_DECISION.md`; server-side apply пока не нужен.
+### Observer doctor-agent MVP implemented in repo and documented
+- Что это: в repo уже существуют implementation files observer-doctor MVP:
+  - `.openclaw/workspace/skills/observer-doctor/SKILL.md`
+  - `scripts/observer_doctor.py`
+  - `docs/ai/OBSERVER_DOCTOR_MVP.md`
+- Почему не осталось: safe observer MVP уже оформлен как `skill + script`, `manual only`, `read-only`, `report only`, `no auto-repair`; отдельный server-side apply для самого MVP не нужен.
 - Нужен ли apply: нет.
 - Риск: будущая реализация может случайно превратиться в новый background monitoring/self-heal contour или выйти за границы observer-only.
 - Rollback: откатить docs-only updates, если owner позже выберет другую архитектуру или scope.
 - Post-check:
   - docs фиксируют chosen architecture = `skill + script`;
+  - file layout задокументирован в `docs/ai/OBSERVER_DOCTOR_MVP.md`;
   - MVP ограничен `infra liveness` + `BS24 business-liveness`;
-  - semantic business correctness и любые repair actions остаются вне scope.
+  - semantic business correctness и любые repair actions остаются вне scope;
+  - dated safe live-check `2026-03-11` зафиксирован как operational snapshot, не как вечная live truth.
 
 ## 3. Decisions accepted, no apply needed
 

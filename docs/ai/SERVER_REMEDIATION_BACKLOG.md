@@ -152,15 +152,20 @@
   - dangerous contours перечислены явно: `watchdog-meta`, `service-guard`, `n8n-watchdog`, `n8n-doctor`, `monitor-locks.sh`, `workspace-validator`, `promise-watchdog`;
   - docs требуют owner decision до любого расширения auto-repair.
 
-### Observer doctor-agent MVP boundary documented
-- Проблема: без явной docs-фиксации safe observer MVP легко спутать с новым self-heal contour или с ещё одним resident doctor loop.
+### Observer doctor-agent MVP implemented in repo and documented
+- Проблема: без явной docs-фиксации и file-layout record safe observer MVP легко спутать с новым self-heal contour или с ещё одним resident doctor loop.
 - Риск: accidental expansion в `cron`, `heartbeat`, `workflow` или auto-repair, несмотря на уже зафиксированный dangerous control plane.
-- Source of truth: `docs/ai/DOCTOR_AGENT_DECISION.md`.
-- Минимальное исправление: в docs закрепить, что observer doctor-agent MVP = `skill + script`, `manual only`, `read-only`, `report only`, `no auto-repair`, `no cron / heartbeat / workflow` for MVP; scope ограничен `infra liveness` и `BS24 business-liveness`.
+- Source of truth: `docs/ai/DOCTOR_AGENT_DECISION.md`, `docs/ai/OBSERVER_DOCTOR_MVP.md`.
+- Минимальное исправление: в docs закрепить, что observer doctor-agent MVP уже реализован в repo как:
+  - `.openclaw/workspace/skills/observer-doctor/SKILL.md`
+  - `scripts/observer_doctor.py`
+  - `docs/ai/OBSERVER_DOCTOR_MVP.md`
+  и что его contour остаётся `manual only`, `read-only`, `report only`, `no auto-repair`, `no cron / heartbeat / workflow`.
 - Rollback: откатить docs-only updates, если owner позже выберет другой MVP contour.
 - Post-check:
   - backlog не трактует observer doctor-agent как pending server-side self-heal implementation;
   - docs явно отделяют observer-only MVP от semantic business correctness;
+  - file layout и safe runbook задокументированы отдельно;
   - любые periodic/background variants остаются owner-decision + approve-only.
 
 ## 3. Next server-side fixes by priority
