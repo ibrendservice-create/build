@@ -1,9 +1,10 @@
-# SERVER AUDIT ADDENDUM 2026-03-11 BLOCKS 5 6 7
+# SERVER AUDIT ADDENDUM 2026-03-11 BLOCKS 5 6 7 8
 
 Docs-only фиксация результатов narrow read-only audit по:
 - Block 5. `Bridge / OAuth / HA delivery`
 - Block 6. `OpenClaw runtime и config protection`
 - Block 7. `Model routing и cron model layer`
+- Block 8. `Prompt / rules / memory source of truth`
 
 Изменения в live не выполнялись.
 Это не apply changelog и не live fix.
@@ -309,4 +310,92 @@ Docs-only фиксация результатов narrow read-only audit по:
 - external chain master = external `fix-model-strategy.py`
 - direct runtime edits are unstable
 - current problem class = docs/architecture drift + overwrite risk, not confirmed live outage
+- live repair not required
+
+## Block 8. Prompt / rules / memory source of truth
+
+Статус:
+- `OK with WARN`
+- live issue not confirmed
+- rules path canon confirmed, not live issue
+
+### Что проверено
+
+- Repo canon и dated audit docs:
+  - `docs/ai/BORIS_DETAIL_SCHEMA_CHECKLIST_v2.md`
+  - `docs/ai/BASELINE_2026-03-10.md`
+  - `docs/ai/SOURCE_OF_TRUTH.md`
+  - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`
+  - `docs/ai/KNOWN_BUGS_AND_WORKAROUNDS.md`
+- Read-only live checks on `S1` / inside internal container:
+  - `/data/.openclaw/workspace/memory/RULES.md`
+  - `/data/.openclaw/memory/RULES.md`
+  - `/data/.openclaw/SOUL.md`
+  - `/data/CLAUDE.md`
+  - `.openclaw/memory` content
+  - `.openclaw/workspace/memory` content
+- Read-only scans for loader/bootstrap and competing rule-source assumptions:
+  - live refs to `workspace/memory/RULES.md`
+  - live refs to `.openclaw/memory/RULES.md`
+  - live refs to `.openclaw/SOUL.md`
+  - presence scan for `RULES.md` / `SOUL.md` under `.openclaw`
+
+### Что ок
+
+- rules source of truth is confirmed:
+  - `/data/.openclaw/workspace/memory/RULES.md`
+- `/data/.openclaw/memory` is confirmed as storage path, not rules path
+- `/data/.openclaw/SOUL.md` is absent
+- `/data/CLAUDE.md` exists, but is not confirmed as master rules source
+- competing active rules master is not confirmed
+- current contour is not a confirmed live issue
+
+### Что drift
+
+- Snapshot and mental-model drift remain around rules paths:
+  - `.openclaw/SOUL.md`
+  - `.openclaw/memory/RULES.md`
+- These stale paths do not match current canon.
+- There is a workspace-level `SOUL.md` artefact under `/data/.openclaw/workspace/SOUL.md`, but current audit did not confirm it as active rules master or canonical rules path.
+- Current drift class here = docs / mental-model drift, not confirmed runtime failure.
+
+### Что risky
+
+- Main risk = docs / mental-model drift around rules paths.
+- The most likely operator mistake is to confuse:
+  - rules source path = `/data/.openclaw/workspace/memory/RULES.md`
+  - storage path = `/data/.openclaw/memory`
+- Additional risk:
+  - `CLAUDE.md` or workspace `SOUL.md` may be misread as master rules source without live verification.
+- Live repair is not required for the current contour.
+
+### Что требует owner decision
+
+- Only if intended rules layout is changed in the future.
+- Possible future action:
+  - compatibility/docs cleanup only
+  - intended prompt layout simplification only by separate decision
+
+### Что требует approve
+
+- Any live changes to:
+  - prompt / memory layout
+  - loader/bootstrap paths
+  - compatibility files around rules path
+- In practice this includes:
+  - `workspace/memory/RULES.md`
+  - `.openclaw/memory`
+  - `.openclaw/SOUL.md`
+  - workspace `SOUL.md`
+  - `CLAUDE.md` if it is used to change live prompt/rules behavior
+
+### Вердикт
+
+- `OK with WARN`
+- rules SoT = `/data/.openclaw/workspace/memory/RULES.md`
+- `/data/.openclaw/memory` = storage path, not rules path
+- `/data/.openclaw/SOUL.md` absent
+- `/data/CLAUDE.md` exists, but is not master rules source
+- competing active rules master not confirmed
+- current problem class = docs / mental-model drift around rules paths, not confirmed live issue
 - live repair not required
