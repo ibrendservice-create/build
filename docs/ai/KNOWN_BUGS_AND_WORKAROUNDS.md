@@ -95,3 +95,10 @@
 - workaround: считать timers отдельным operational-risk contour и не смешивать его с `jobs.json`; для repo planning фиксировать, что оба timers требуют owner decision, а `Дайджест развития — Канал мастеров` сейчас трактуется как `not yet run`, не broken; на `S2` этот housekeeping contour crontab-based, а не timer-based.
 - что нельзя делать: автоматически считать weekly digest broken, а также автоматически чинить, отключать или удалять timers без owner decision и approve.
 - статус: active.
+
+### Tender specialist skill boundary and tool drift
+- симптом: server-side Boris skill `tender-specialist` на `S1` уже построен как `skill + script`, но в `SKILL.md` есть узкий tool/boundary drift: ссылка на несуществующий `parse-attachment`, слишком широкая формулировка про "видишь все сообщения пользователей и сам решаешь", и нет явной do-not-touch boundary для `routing/workflows/bridge/monitoring/model files/jobs`.
+- где проявляется: Boris tender contour на `S1`, чат ТЕНДЕР, orchestration layer поверх `tender-analysis-helper.py`.
+- workaround: до apply считать contour именно `skill + script`, а не pure skill; не расширять scope за пределы `tender-specialist/SKILL.md`; планировать patch только как low-risk server-side change в рабочее окно; соседние contours (`scripts`, `jobs.json`, model files, workflows, bridge, monitoring`) не трогать.
+- что нельзя делать: чинить это через `jobs.json`, model files, workflow routing, bridge config или monitoring/self-healing; превращать patch в refactor helper scripts без отдельной задачи; делать apply вне `low-risk change window`, если нет emergency.
+- статус: active.

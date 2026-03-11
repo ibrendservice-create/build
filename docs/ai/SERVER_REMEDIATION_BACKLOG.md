@@ -8,6 +8,7 @@
 - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`
 - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`
 - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`
+- `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TENDER_SPECIALIST.md`
 - `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`
 
 ## 1. Already fixed
@@ -118,7 +119,24 @@
 
 ## 3. Next server-side fixes by priority
 
-На текущий момент подтвержденных next server-side fixes по этому backlog больше нет.
+### Tender specialist skill hygiene on S1
+- Проблема: weekly narrow audit подтвердил, что `tender-specialist` живёт на `S1` как server-side Boris skill, и его contour уже фактически = `skill + script`, но в `SKILL.md` остались три узкие проблемы orchestration-layer.
+- Риск: неверный tool reference внутри skill, слишком широкая формулировка scope и отсутствие явной do-not-touch boundary рядом с критичными contours Бориса.
+- Source of truth: `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TENDER_SPECIALIST.md`.
+- Минимальное исправление:
+  - `parse-attachment -> parse-file`
+  - убрать опасную формулировку про "видишь все сообщения пользователей и сам решаешь"
+  - явно прописать do-not-touch boundary для `routing/workflows/bridge/monitoring/model files/jobs`
+- Почему это low-risk: это точечный server-side patch только в одном file `tender-specialist/SKILL.md`, без правок scripts, `jobs.json`, model files, workflows, bridge или monitoring.
+- Apply status: пока не делался.
+- Change window: отложено до `low-risk change window` (`будни 12:00–15:00 MSK`).
+- Rollback: backup текущего `tender-specialist/SKILL.md` и file-level restore.
+- Post-check:
+  - `sed -n`/diff по `tender-specialist/SKILL.md`
+  - убедиться, что ссылка идёт на `parse-file`
+  - убедиться, что boundary и trigger wording стали уже, а соседние contours не затронуты
+
+На текущий момент других подтвержденных next server-side fixes по этому backlog больше нет.
 
 - `boris-email-router.timer` и `chief-doctor.timer` уже выведены из remaining actions через safe disable.
 - `Дайджест развития — Канал мастеров` оставлен без apply и не считается broken cron.

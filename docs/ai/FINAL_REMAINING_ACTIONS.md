@@ -140,7 +140,21 @@
 
 ## 4. Remaining server-side actions truly still needed
 
-На текущий момент подтвержденных remaining server-side actions больше нет.
+### Tender specialist skill hygiene on S1
+- Что это: узкий server-side patch для Boris skill `tender-specialist` на `S1`.
+- Почему осталось: read-only audit подтвердил, что skill живёт в live skill-layer Boris на `S1`, contour устроен как `skill + script`, но в самом `SKILL.md` нужны три точечные правки:
+  - `parse-attachment -> parse-file`
+  - убрать опасную широкую формулировку про "видишь все сообщения пользователей и сам решаешь"
+  - явно прописать do-not-touch boundary для `routing/workflows/bridge/monitoring/model files/jobs`
+- Нужен ли apply: да, но только как low-risk server-side change в отдельное рабочее окно.
+- Риск: patch ночью или без backup не нужен; patch шире одного skill-файла уже выйдет из agreed scope.
+- Rollback: timestamp backup `tender-specialist/SKILL.md` + file-level restore.
+- Post-check:
+  - проверить updated `SKILL.md`
+  - проверить, что contour по-прежнему = `skill + script`, а не уехал в routing/workflow/cron territory
+  - убедиться, что scripts и соседние skills не менялись
+
+Других подтвержденных remaining server-side actions сейчас больше нет.
 
 - `boris-email-router.timer` и `chief-doctor.timer` уже безопасно отключены по owner decision.
 - `Дайджест развития — Канал мастеров` оставлен как есть и не считается broken.
@@ -210,6 +224,16 @@
   - `S2 :3200`;
   - интеграционные cron endpoints;
   - отсутствие runtime split.
+
+### Tender specialist patch timing
+- Что это: timing constraint для уже найденного low-risk patch в live skill-layer Boris.
+- Почему не осталось: сам patch ещё не сделан, но и emergency apply не нужен.
+- Нужен ли apply: только в `low-risk change window`.
+- Риск: делать patch вне окна без необходимости.
+- Rollback: не отличается от file-level rollback для `tender-specialist/SKILL.md`.
+- Post-check:
+  - apply запускать только в `будни 12:00–15:00 MSK`
+  - scope не расширять дальше одного skill file
 
 ## 6. Do not touch list
 
