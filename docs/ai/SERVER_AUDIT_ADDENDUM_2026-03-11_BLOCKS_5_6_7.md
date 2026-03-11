@@ -1,8 +1,9 @@
-# SERVER AUDIT ADDENDUM 2026-03-11 BLOCKS 5 6
+# SERVER AUDIT ADDENDUM 2026-03-11 BLOCKS 5 6 7
 
 Docs-only фиксация результатов narrow read-only audit по:
 - Block 5. `Bridge / OAuth / HA delivery`
 - Block 6. `OpenClaw runtime и config protection`
+- Block 7. `Model routing и cron model layer`
 
 Изменения в live не выполнялись.
 Это не apply changelog и не live fix.
@@ -195,4 +196,117 @@ Docs-only фиксация результатов narrow read-only audit по:
 - internal runtime = `openclaw-kbxr-openclaw-1`
 - current contour is layered runtime, not single-master
 - main problem class = source-of-truth confusion and overwrite risk, not confirmed live outage
+- live repair not required
+
+## Block 7. Model routing и cron model layer
+
+Статус:
+- `OK with WARN`
+- live outage not confirmed
+- docs/architecture drift + overwrite risk, not confirmed runtime failure
+
+### Что проверено
+
+- Repo canon и dated audit docs:
+  - `docs/ai/BORIS_DETAIL_SCHEMA_CHECKLIST_v2.md`
+  - `docs/ai/BASELINE_2026-03-10.md`
+  - `docs/ai/SOURCE_OF_TRUTH.md`
+  - `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`
+  - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`
+  - `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md`
+  - `docs/ai/KNOWN_BUGS_AND_WORKAROUNDS.md`
+- Read-only live checks on `S1`:
+  - internal `model-strategy.json`
+  - internal `.openclaw/openclaw.json`
+  - internal `.openclaw/cron/jobs.json`
+  - internal `fix-model-strategy.py`
+  - internal `circuit-breaker-internal.py`
+  - `startup-cleanup.sh`
+  - host `crontab`
+  - external `.openclaw/openclaw.json`
+  - external `fix-model-strategy.py`
+- Сверены три слоя:
+  - internal default-chain
+  - internal cron declarative/runtime layer
+  - external Boris chain
+
+### Что ок
+
+- internal default-chain master confirmed:
+  - `model-strategy.json`
+- internal cron declarative master remains tied to:
+  - `model-strategy.json`
+- internal cron effective runtime confirmed:
+  - `jobs.json`
+- current live internal cron model confirmed:
+  - `bridge/claude-opus-4-6`
+- current internal default-chain remains consistent with strategy:
+  - primary `bridge/claude-sonnet-4-6`
+  - subagents `bridge/claude-opus-4-6`
+- external chain master confirmed:
+  - external `fix-model-strategy.py`
+- external effective runtime remains:
+  - `anthropic/claude-haiku-4-5 -> openai/gpt-5`
+- fixer ownership is confirmed:
+  - internal `fix-model-strategy.py` reads `model-strategy.json` and writes `openclaw.json`, `jobs.json`, `models.json`
+  - `startup-cleanup.sh` runs internal `fix-model-strategy.py`
+  - `circuit-breaker-internal.py` mutates internal `openclaw.json`, but is not source of truth for cron models
+- current contour is not a confirmed live outage
+
+### Что drift
+
+- This contour is not a single-master layout.
+- Runtime/effective files are easy to misread as master:
+  - internal `.openclaw/openclaw.json`
+  - internal `.openclaw/cron/jobs.json`
+  - external `.openclaw/openclaw.json`
+- Snapshot and mental-model drift remain around routing ownership:
+  - internal default-chain and cron model layers are split
+  - external chain uses a different master/enforcer model
+- Internal and external enforcement are not symmetric:
+  - external fixer is explicitly minutely enforced
+  - internal cron model enforcement is confirmed via startup fixer and writer chain, but not as a symmetric minute-enforcer for `jobs.json`
+- Current drift class here = docs/architecture drift, not confirmed live break.
+
+### Что risky
+
+- Main risk = docs/architecture drift + overwrite risk.
+- Direct edits to runtime layer remain unstable:
+  - internal `openclaw.json`
+  - internal `jobs.json`
+  - external `openclaw.json`
+- Internal/external enforcement asymmetry increases diagnostic risk:
+  - external layer is more explicitly enforced
+  - internal cron runtime can be wrongly assumed to have the same enforcement semantics
+- `circuit-breaker-internal.py` can temporarily mutate internal default-chain, which increases layering complexity, but it still should not be treated as source of truth for cron models.
+- Live repair is not required for the current contour.
+
+### Что требует owner decision
+
+- Only for future simplification or consolidation of routing architecture.
+- Possible future action:
+  - docs cleanup only
+  - architecture simplification only by separate decision
+
+### Что требует approve
+
+- Any live changes to:
+  - `model-strategy.json`
+  - internal/external `openclaw.json`
+  - internal `jobs.json`
+  - internal/external `fix-model-strategy.py`
+  - `circuit-breaker-internal.py`
+  - `startup-cleanup.sh`
+  - related cron entries
+
+### Вердикт
+
+- `OK with WARN`
+- internal default-chain master = `model-strategy.json`
+- internal cron declarative master is tied to `model-strategy.json`
+- internal cron runtime = `jobs.json`
+- live cron model = `bridge/claude-opus-4-6`
+- external chain master = external `fix-model-strategy.py`
+- direct runtime edits are unstable
+- current problem class = docs/architecture drift + overwrite risk, not confirmed live outage
 - live repair not required
