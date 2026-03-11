@@ -58,6 +58,27 @@
   - `Commitment Checker` и `Дайджест развития — Штаб` отдельно проверены как multi-send jobs
   - out-of-scope jobs не изменялись
 
+### S1 stale exact-match webhook routes removed
+- Проблема: на `S1` в `/etc/nginx/sites-enabled/n8n-public-edge` 3 stale exact-match webhook routes указывали на `127.0.0.1:3200`, хотя listener на `S1 :3200` отсутствовал.
+- Риск: webhook paths `executor-search`, `boris-memory-read` и `boris-mention` уходили в wrong backend path вместо canonical generic `/webhook/` contour.
+- Source of truth: `docs/ai/SERVER_CHANGELOG_2026-03-11_block9_webhook_routes_fix.md`.
+- Минимальное исправление: удалены только 3 stale exact-match `location` blocks:
+  - `/webhook/executor-search`
+  - `/webhook/boris-memory-read`
+  - `/webhook/boris-mention`
+- Что не менялось:
+  - `/hooks/`
+  - generic `location /webhook/`
+  - `/webhook/email-att-parse`
+  - `S2 Caddy`
+  - workflow flags
+- Rollback: восстановить `/etc/nginx/sites-enabled/n8n-public-edge` из backup `/etc/nginx/sites-enabled/n8n-public-edge.bak-20260311-092148`, затем `nginx -t` и reload.
+- Post-check:
+  - 3 stale exact-match blocks отсутствуют
+  - `location = /webhook/email-att-parse`, generic `location /webhook/` и `/hooks/` block сохранены
+  - `nginx -t` successful
+  - `systemctl is-active nginx` = `active`
+
 ## 2. Docs-only resolved
 
 ### Canon aligned with audited live drift

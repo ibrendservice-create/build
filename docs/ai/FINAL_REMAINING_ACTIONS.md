@@ -48,6 +48,17 @@
   - scoped Phase B jobs live содержат canonical stdin send blocks
   - `Timur Morning Digest`, `okdesk-comment-monitor` и `Дайджест развития — Канал мастеров` не были затронуты в Phase B
 
+### S1 stale exact-match webhook exceptions removed
+- Что это: narrow live routing fix для `S1 /etc/nginx/sites-enabled/n8n-public-edge`.
+- Почему не осталось: подтвержденный Block 9 live issue закрыт; 3 stale exact-match webhook routes больше не перехватывают трафик в несуществующий `S1 :3200`.
+- Нужен ли apply: нет, apply уже выполнен успешно.
+- Риск: future ручная правка `n8n-public-edge` может вернуть stale exceptions и снова увести эти webhook paths мимо canonical generic `/webhook/` contour.
+- Rollback: восстановить `/etc/nginx/sites-enabled/n8n-public-edge` из backup `/etc/nginx/sites-enabled/n8n-public-edge.bak-20260311-092148` и повторить `nginx -t` + reload.
+- Post-check:
+  - удалены только `location = /webhook/executor-search`, `location = /webhook/boris-memory-read`, `location = /webhook/boris-mention`
+  - сохранены `location = /webhook/email-att-parse`, generic `location /webhook/` и `/hooks/` contour
+  - `nginx -t` successful, `systemctl is-active nginx` = `active`
+
 ## 2. Docs-only resolved
 
 ### Canon aligned with audited live drift
