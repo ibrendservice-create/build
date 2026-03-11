@@ -3,12 +3,25 @@
 ## Цель
 Любое server-side изменение делать одинаково: проверка, backup, apply, post-check, rollback.
 
+Before editing any live config, first identify:
+- source of truth
+- derived/runtime file
+- all writers/enforcers
+- their triggers
+- whether the target will be rewritten after apply
+
+If a writer/enforcer exists, do not patch runtime directly unless the change plan explicitly covers the writer layer too.
+
 ## Обязательный порядок
 
 ### 1. Определи слой
 Перед началом всегда определить:
 - какой контур меняется;
 - source of truth;
+- master;
+- derived/runtime;
+- writers/enforcers;
+- trigger writers;
 - blast radius;
 - что не должно быть затронуто.
 
@@ -16,10 +29,13 @@
 До изменения обязательно:
 - подтвердить live state;
 - подтвердить путь/файл/юнит/процесс;
+- подтвердить, какой файл является master, а какой derived/runtime;
+- найти active/potential writers/enforcers и их trigger chain;
 - убедиться, что нет drift между ожиданием и реальностью;
 - зафиксировать текущий статус.
 
 Если pre-check не совпал с ожиданием, apply не делать.
+Если runtime/derived файл будет перезаписан writer/enforcer, apply в него по умолчанию не делать.
 
 ### 3. Backup
 Перед любым apply:
@@ -32,6 +48,11 @@
 Менять только то, что входит в согласованный scope.
 Не расширять задачу на ходу.
 Не делать “попутные улучшения”.
+Если контур живёт через layered sync, менять master-слой.
+Если apply нужен именно в runtime, сначала выбрать только один допустимый путь:
+- обновить master;
+- обновить writer/enforcer layer;
+- по approved plan отдельно отключить enforcer.
 
 ### 5. Post-check
 После apply обязательно проверить:
@@ -55,6 +76,10 @@ Rollback делать сразу, не откладывать.
 
 - Слой
 - Source of truth
+- Master
+- Derived/runtime
+- Writers/enforcers
+- Trigger writers
 - Что меняется
 - Что не меняется
 - Backup
@@ -78,6 +103,7 @@ Rollback делать сразу, не откладывать.
 - restart критичных сервисов
 - destructive actions
 - secrets/tokens/credentials
+- правка runtime/derived файла без writer-chain анализа и согласованного плана по enforcer layer
 
 ## Формат change result
 После каждого apply нужно зафиксировать:
@@ -88,4 +114,3 @@ Rollback делать сразу, не откладывать.
 - результат post-check;
 - был ли rollback;
 - итог: success / failed / rolled back.
-

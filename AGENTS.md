@@ -38,6 +38,15 @@
 - обязательный post-change verification
 - не читать и не выводить секреты
 
+## Server-side config rule
+- Before editing any live config, first identify:
+  - source of truth
+  - derived/runtime file
+  - all writers/enforcers
+  - their triggers
+  - whether the target will be rewritten after apply
+- If a writer/enforcer exists, do not patch runtime directly unless the change plan explicitly covers the writer layer too.
+
 ## Forbidden without approval
 Запрещено без approve:
 
@@ -58,14 +67,15 @@
 1 определить слой и blast radius
 2 прочитать канонические docs в порядке выше
 3 найти source of truth
-4 отделить канон от snapshot/runtime
-5 проверить риски и соседние контуры
-6 если docs конфликтуют -> SERVER_AUDIT_REQUIRED
-7 минимальный план
-8 rollback
-9 изменение
-10 post-check
-11 verdict
+4 определить derived/runtime и writer chain
+5 отделить канон от snapshot/runtime
+6 проверить риски и соседние контуры
+7 если docs конфликтуют -> SERVER_AUDIT_REQUIRED
+8 минимальный план
+9 rollback
+10 изменение
+11 post-check
+12 verdict
 
 ## Output format
 - слой

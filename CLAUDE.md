@@ -39,19 +39,27 @@
 - Не менять generated/runtime файлы, если есть master-конфиг.
 - Не перезапускать критичные сервисы без явного approve.
 - Не делать широкий рефакторинг вместе с одной задачей.
+- Before editing any live config, first identify:
+  - source of truth
+  - derived/runtime file
+  - all writers/enforcers
+  - their triggers
+  - whether the target will be rewritten after apply
+- If a writer/enforcer exists, do not patch runtime directly unless the change plan explicitly covers the writer layer too.
 
 ## Required workflow
 Для любой задачи:
 1. Определи слой и blast radius.
 2. Прочитай канонические docs в порядке из `docs/ai/OPERATING_CONSENSUS.md`.
 3. Найди source of truth.
-4. Отдели канон от snapshot/runtime.
-5. Перечисли, что может сломаться.
-6. Если docs конфликтуют, пометь `SERVER_AUDIT_REQUIRED`.
-7. Дай минимальный план.
-8. Подготовь rollback.
-9. После изменения проверь цель и соседние контуры.
-10. Выдай вердикт: SAFE / NEEDS APPROVAL / BLOCKED / RISKY.
+4. Определи derived/runtime, writer/enforcer chain и их triggers.
+5. Отдели канон от snapshot/runtime.
+6. Перечисли, что может сломаться.
+7. Если docs конфликтуют, пометь `SERVER_AUDIT_REQUIRED`.
+8. Дай минимальный план.
+9. Подготовь rollback.
+10. После изменения проверь цель и соседние контуры.
+11. Выдай вердикт: SAFE / NEEDS APPROVAL / BLOCKED / RISKY.
 
 ## Output style
 Отвечай кратко:

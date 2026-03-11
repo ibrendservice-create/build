@@ -106,6 +106,16 @@
   - docs различают declarative master и effective runtime;
   - `circuit-breaker-internal.py` не описан как source of truth для cron models.
 
+### Writer / enforcer map documented in canon
+- Что это: новый read-only audit `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` плюс docs-only правило искать master / derived / writer chain до любого server-side apply.
+- Почему не осталось: docs gap закрыт; карта active/potential writers уже зафиксирована без server-side изменений.
+- Нужен ли apply: нет.
+- Риск: снова править runtime-файл как будто он stable master, игнорируя startup/cron/doctor/monitor/sync rewrite layer.
+- Rollback: откатить docs-only updates и новый audit doc, если когда-либо потребуется вернуться к состоянию до этого read-only аудита.
+- Post-check:
+  - канон требует сначала искать master, derived/runtime, writers/enforcers и trigger writers;
+  - critical target files больше не трактуются как safe-to-edit runtime по умолчанию.
+
 ## 3. Decisions accepted, no apply needed
 
 ### Workflow states accepted as current norm
@@ -257,6 +267,16 @@
   - `systemctl status okdesk-pipeline`
   - `ss -ltn | grep :3200`
   - рабочие `S2` cron calls на `localhost:3200`
+
+### Derived/runtime files behind active writer chains
+- Что это: любые runtime/derived файлы, которые уже подтверждены как объекты startup/cron/doctor/monitor/sync rewrite layer.
+- Почему не осталось: отдельного apply здесь нет; это safety boundary, а не backlog item.
+- Нужен ли apply: нет, если нет explicit approval и заранее подготовленного плана по master/writer layer.
+- Риск: ручная правка исчезнет после следующего writer trigger и создаст ложный вывод, будто apply "не сработал".
+- Rollback: rollback делать не по runtime-файлу отдельно, а по master/writer chain этого контура.
+- Post-check:
+  - перед любым future apply использовать `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md`;
+  - сначала синхронизировать master и writer layer, а не только runtime.
 
 ### Model routing files, fixers and startup hooks
 - Что это: любые изменения `model-strategy.json`, internal/external `openclaw.json`, `jobs.json`, `fix-model-strategy.py`, `circuit-breaker-internal.py`, startup scripts и related cron.

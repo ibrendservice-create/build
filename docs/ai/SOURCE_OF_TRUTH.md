@@ -2,10 +2,12 @@
 
 ## Базовое правило
 - Никогда не считать runtime/generated файл источником истины, если есть master-конфиг, patcher, generator или sync pipeline.
+- Перед любой server-side правкой сначала определить не только master, но и derived/runtime файл, active/potential writers/enforcers и их trigger chain.
 
 ## Канон внутри repo
 - Для project instructions и planning source of truth в repo: `docs/ai/OPERATING_CONSENSUS.md`, `docs/ai/PROJECT_MEMORY.md`, `docs/ai/SOURCE_OF_TRUTH.md`, `docs/ai/CHANGE_POLICY.md`, `docs/ai/VERIFICATION_MATRIX.md`, `docs/ai/KNOWN_BUGS_AND_WORKAROUNDS.md`.
 - `AGENTS.md` и `CLAUDE.md` это входные project instruction files; они должны вести к одному и тому же канону, а не расходиться с ним.
+- `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` = repo-visible read-only audit helper по writer/enforcer chains на `S1` и `S2`; использовать его для классификации master vs runtime перед server-side apply.
 
 ## Snapshot docs, но не live master
 - `docs/ai/HANDOFF_2026-03-10.md` это snapshot и handoff на дату документа.
@@ -74,9 +76,27 @@
 - Live server-side configs, runtime state, workflow state, systemd, nginx/Caddy, database schema, secrets и прочий server-side truth проверяются только вне repo.
 - Если факт относится к live-системе и не подтвержден каноном repo, требуется `SERVER_AUDIT_REQUIRED`.
 
+## Writer / enforcer discipline
+- Нельзя править runtime/derived файл, если его затем перезапишет startup, cron, doctor, monitor, self-heal, sync или другой writer/enforcer.
+- Если контур живёт через layered sync, менять нужно master-слой, а не derived/runtime-слой.
+- Если apply всё же нужен в runtime, сначала требуется одно из трёх:
+  - обновить master;
+  - обновить writer/enforcer layer;
+  - отдельно и осознанно отключить enforcer по approved plan.
+- Для критичных target files writer chain нужно зафиксировать до apply:
+  - `openclaw.json`;
+  - `jobs.json`;
+  - model-strategy related files;
+  - prompt/memory paths;
+  - monitored config files;
+  - systemd/runtime configs;
+  - sync-derived data copies.
+
 ## Перед любой правкой определить
 - master source;
 - generated/runtime files;
+- active/potential writers/enforcers;
+- trigger writers;
 - что нельзя править напрямую;
 - что перезаписывается при рестарте, bootstrap, sync или patch;
 - можно ли доказать факт по repo docs или нужен server audit.

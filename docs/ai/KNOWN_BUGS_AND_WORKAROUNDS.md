@@ -19,6 +19,13 @@
 - что нельзя делать: редактировать live runtime config напрямую и считать его стабильным после restart.
 - статус: mitigated.
 
+### Runtime direct-edit overwrite by writers/enforcers
+- симптом: ручная правка runtime/derived файла исчезает после startup, cron, doctor, monitor, self-heal или sync.
+- где проявляется: `openclaw.json`, `jobs.json`, external `openclaw.json`, prompt/memory files, monitored config files, okdesk derived copies и другие layered contours.
+- workaround: перед apply сначала найти master, derived/runtime, writers/enforcers и их trigger chain; если contour layered, менять master-слой; если runtime apply неизбежен, сначала обновить master или writer layer, либо по approved plan отключить enforcer.
+- что нельзя делать: править runtime/derived файл в изоляции, если следующий writer/enforcer всё равно его перепишет.
+- статус: active.
+
 ### okdesk-pipeline deployment truth mismatch
 - симптом: snapshot docs расходились с live-аудитом по placement и состоянию деплоя `okdesk-pipeline`.
 - где проявляется: deployment planning, audit, rollout decisions.

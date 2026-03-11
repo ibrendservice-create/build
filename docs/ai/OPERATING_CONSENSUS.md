@@ -30,6 +30,7 @@
 - Канон repo: этот файл плюс `docs/ai/PROJECT_MEMORY.md`, `docs/ai/SOURCE_OF_TRUTH.md`, `docs/ai/CHANGE_POLICY.md`, `docs/ai/VERIFICATION_MATRIX.md`, `docs/ai/KNOWN_BUGS_AND_WORKAROUNDS.md`.
 - Dated audit docs: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md` и `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`.
 - Snapshot docs: `docs/ai/HANDOFF_2026-03-10.md` и внешний `Boris-Detail-Schema.txt`.
+- `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` = read-only audit helper по writer/enforcer chains; это не новый live master, а карта overwrite/restore контуров.
 - Live server-side truth проверяется только вне repo.
 
 ## Canon vs snapshots
@@ -47,11 +48,35 @@
 ## Shared safety contour
 - сначала проверка, потом изменение;
 - сначала source of truth, потом runtime;
+- сначала master/derived/writer chain, потом apply;
 - сначала нижний слой, потом верхний;
 - только минимальный change set;
 - всегда иметь rollback;
 - всегда делать post-change verification;
 - не читать и не выводить секреты.
+
+Before editing any live config, first identify:
+- source of truth
+- derived/runtime file
+- all writers/enforcers
+- their triggers
+- whether the target will be rewritten after apply
+
+If a writer/enforcer exists, do not patch runtime directly unless the change plan explicitly covers the writer layer too.
+
+## Writer chain rule
+- Перед любой server-side правкой сначала искать:
+  - master;
+  - derived/runtime;
+  - writers/enforcers;
+  - trigger writers.
+- Нельзя править runtime/derived файл, если его потом перезапишет writer/enforcer.
+- Если конфиг живёт через layered sync, менять нужно master-слой.
+- Если apply нужен в runtime, сначала надо:
+  - либо обновить master;
+  - либо обновить writer layer;
+  - либо отдельно и осознанно отключить enforcer по approved plan.
+- Для критичных target files writer chain должен быть зафиксирован заранее; быстрый audit helper для этого = `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md`.
 
 ## Forbidden without explicit approve
 - auth;
