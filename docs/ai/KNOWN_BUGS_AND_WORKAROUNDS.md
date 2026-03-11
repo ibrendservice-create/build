@@ -34,14 +34,25 @@
 - статус: active.
 
 ### Telegram group gating backup convergence gap
-- симптом: узкий runtime change в Telegram group gating может пройти immediate post-check, но validator backup остается stale, поэтому change нельзя считать устойчивым. На `2026-03-11` exactly this happened for Штаб chat `-1002799098412`: `requireMention` в runtime переключился `false -> true`, а backup contour не конвергировал и change был откатан.
+- симптом: если delayed check window короче реального validator refresh contour, `telegram-config.json` может оставаться stale после корректного runtime apply, и это легко ошибочно принять за failed convergence. На первой попытке `2026-03-11` exactly this happened for Штаб chat `-1002799098412`: runtime `requireMention` switched `false -> true`, но backup check был сделан слишком рано и change откатили.
 - где проявляется: `S1` internal Boris Telegram config contour:
   - `/var/lib/apps-data/openclaw/data/.openclaw/openclaw.json`
   - `/var/lib/apps-data/boris-doctor/backups/telegram-config.json`
   - `workspace-validator` restore layer
-- workaround: перед новой попыткой отдельно понять refresh / ownership logic для `telegram-config.json`; success считать только если конвергировали и runtime field, и validator backup; сохранять узкий scope и не трогать `mentionPatterns`, `replyToMode`, topic overrides или `workspace-validator.py`, если это отдельно не approve-нуто.
-- что нельзя делать: объявлять fix успешным только по immediate runtime check; повторять runtime-only flip вслепую; записывать issue как fixed, пока current live state после rollback снова = `requireMention=false`.
-- статус: active.
+- workaround:
+  - считать `openclaw.json` live canonical source for Telegram group config;
+  - считать `telegram-config.json` periodic restore snapshot/cache, not master;
+  - delayed convergence check делать только на следующем eligible validator cycle:
+    - nominally every 6h
+    - only in `04:00–18:00 UTC`
+    - with `~120s` polling loop
+  - до этого окна stale backup не считать ошибкой;
+  - не трогать `mentionPatterns`, `replyToMode`, topic overrides или `workspace-validator.py`, если это отдельно не approve-нуто.
+- что нельзя делать:
+  - откатывать narrow runtime apply только потому, что backup не обновился внутри короткого окна;
+  - редактировать `telegram-config.json` руками как будто это master;
+  - объявлять contour fully stable до validator convergence check.
+- статус: mitigated.
 
 ### okdesk-pipeline deployment truth mismatch
 - симптом: snapshot docs расходились с live-аудитом по placement и состоянию деплоя `okdesk-pipeline`.

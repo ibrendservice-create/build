@@ -308,15 +308,14 @@
 ## 3. Next server-side fixes by priority
 
 ### HQ Telegram requireMention stabilization on S1
-- Проблема: у Штаба live chat id = `-1002799098412`, current live state после rollback остается `requireMention=false`; minimal attempt от `2026-03-11` менял только `requireMention: false -> true`, immediate post-check прошел, но delayed validator-backup convergence не произошел и change был откатан.
-- Риск: narrow Telegram gating fix может выглядеть успешным в runtime, пока adjacent backup / restore layer остается stale; следующий validator cycle или неясная ownership logic могут вернуть drift или сделать change недоказуемо стабильным.
+- Проблема: у Штаба live chat id = `-1002799098412`; first attempt от `2026-03-11` был откатан, потому что delayed backup check window был выбран слишком коротким относительно real validator refresh contour.
+- Current state: reapply от `2026-03-11` уже выполнен, и current live runtime state now = `.channels.telegram.groups["-1002799098412"].requireMention = true`.
+- Риск: до следующего eligible validator cycle `telegram-config.json` ещё может оставаться stale на `false`; это само по себе не ошибка, но final stability verdict до convergence давать нельзя.
 - Source of truth:
-  - `docs/ai/SERVER_CHANGELOG_2026-03-11_HQ_REQUIRE_MENTION_FAILED.md`
+  - `docs/ai/SERVER_CHANGELOG_2026-03-11_HQ_REQUIRE_MENTION_REAPPLY.md`
   - `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md`
 - Минимальное исправление:
-  - сначала отдельно понять refresh / ownership logic для `/var/lib/apps-data/boris-doctor/backups/telegram-config.json`
-  - только потом повторять тот же one-field apply в `/var/lib/apps-data/openclaw/data/.openclaw/openclaw.json`
-  - scope будущей попытки не расширять за пределы:
+  - already applied as one-field runtime change:
     - `.channels.telegram.groups["-1002799098412"].requireMention: false -> true`
 - Что не менять в этом contour:
   - `mentionPatterns`
@@ -327,10 +326,15 @@
   - workflows
   - bridge
   - monitoring
-- Apply status: одна попытка уже была и завершилась `rolled back`.
-- Rollback: для любой новой попытки backup / restore нужны одновременно для `openclaw.json` и `telegram-config.json`.
+- Apply status: current status = `runtime success, pending validator convergence`.
+- Exact next validator refresh window:
+  - `2026-03-12 04:02:37 UTC` to `2026-03-12 04:04:37 UTC`
+  - `2026-03-12 07:02:37 MSK` to `2026-03-12 07:04:37 MSK`
+- Rollback: current apply did not require rollback; future rollback is needed only if later validator convergence goes wrong.
 - Post-check:
-  - immediate field flip в runtime
+  - immediate field flip in runtime = passed
+  - `mentionPatterns`, `replyToMode`, topic overrides unchanged = passed
+  - stale `telegram-config.json` before the window above = not an error
   - delayed convergence validator backup к `requireMention=true`
   - only then считать contour stable
 

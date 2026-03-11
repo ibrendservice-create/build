@@ -258,17 +258,30 @@
 
 ### HQ Telegram requireMention stabilization on S1
 - Что это: узкий live fix для Штаба в Telegram group/chat `-1002799098412`.
-- Почему осталось: attempt от `2026-03-11` менял только `.channels.telegram.groups["-1002799098412"].requireMention: false -> true`, immediate apply сработал, но delayed validator-backup convergence не произошел и change был откатан.
-- Нужен ли apply: да, но только после отдельного read-only понимания refresh / ownership logic для `/var/lib/apps-data/boris-doctor/backups/telegram-config.json`.
-- Риск: повторить runtime-only flip и снова получить ложный `success`, пока backup / restore layer остается stale и ownership этого контура не подтвержден.
-- Rollback: для любой новой попытки backup и restore нужны сразу для двух файлов:
-  - `/var/lib/apps-data/openclaw/data/.openclaw/openclaw.json`
-  - `/var/lib/apps-data/boris-doctor/backups/telegram-config.json`
-- Post-check:
-  - exact field в `openclaw.json` = `true`
-  - `mentionPatterns`, `replyToMode`, topic overrides без изменений
-  - validator backup тоже конвергирует к `requireMention=true`
-  - только после этого change можно считать stable
+- Current state: reapply от `2026-03-11` уже выполнен; live canonical runtime field now = `.channels.telegram.groups["-1002799098412"].requireMention = true`.
+- Что осталось: не новый apply, а только delayed validator-convergence verification для `/var/lib/apps-data/boris-doctor/backups/telegram-config.json`.
+- Source of truth:
+  - `docs/ai/SERVER_CHANGELOG_2026-03-11_HQ_REQUIRE_MENTION_REAPPLY.md`
+  - `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md`
+- Что не менялось этим apply:
+  - `mentionPatterns`
+  - `replyToMode`
+  - topic overrides
+  - `workspace-validator.py`
+  - routing
+  - workflows
+  - bridge
+  - monitoring
+- Exact next validator refresh window:
+  - `2026-03-12 04:02:37 UTC` to `2026-03-12 04:04:37 UTC`
+  - `2026-03-12 07:02:37 MSK` to `2026-03-12 07:04:37 MSK`
+- Important:
+  - `telegram-config.json` still showing `false` before that window is expected and must not be treated as an error
+- Stable success condition:
+  - runtime field stays `true`
+  - validator backup converges to `requireMention=true` on the next eligible cycle
+  - `mentionPatterns`, `replyToMode`, topic overrides remain unchanged
+- Rollback: не потребовался на immediate post-check; future rollback нужен только если later validator convergence goes wrong
 
 ### Tender specialist skill hygiene on S1
 - Что это: узкий server-side patch для Boris skill `tender-specialist` на `S1`.
