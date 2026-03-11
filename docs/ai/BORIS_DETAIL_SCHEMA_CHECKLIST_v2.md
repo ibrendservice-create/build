@@ -1,6 +1,19 @@
 # BORIS DETAIL SCHEMA CHECKLIST v2
 
-Рабочая схема-чеклист для Бориса.
+```text
+╔════════════════════════════════════════════════════════════════════════════════════╗
+║                BORIS / OPENCLAW / BS24 — РАБОЧАЯ СХЕМА-ЧЕКЛИСТ                    ║
+║                weekly audit + change plan, top-down, from critical to minor       ║
+╠════════════════════════════════════════════════════════════════════════════════════╣
+║ ПОРЯДОК ЧТЕНИЯ                                                                    ║
+║ 1. Сначала source of truth                                                         ║
+║ 2. Потом live/runtime                                                              ║
+║ 3. Идти сверху вниз                                                                ║
+║ 4. Если стоп на уровне N, выше N не считать надёжным                              ║
+╚════════════════════════════════════════════════════════════════════════════════════╝
+```
+
+Рабочая схема для Бориса.
 Назначение: один документ для weekly audit и для change plan.
 
 Основа:
@@ -14,15 +27,104 @@
 - сначала source of truth, потом runtime;
 - snapshot и внешние схемы не повышать до live master без аудита.
 
-## Уровни
+## Визуальная карта системы
 
-1. Критичный фундамент
-2. Core runtime
-3. Delivery и control
-4. BS24 integrations
-5. Business loop / roadmap boundary
+```text
+КЛИЕНТЫ / КООРДИНАТОРЫ / ТЕХНИКИ / EMAIL / OKDESK
+                    |
+                    v
+     PUBLIC EDGE / DELIVERY ENTRY
+     S1 nginx + S2 Caddy + canonical public probes
+                    |
+         +----------+-----------+
+         |                      |
+         v                      v
+   WEBHOOK / HOOKS         UI / API / BRIDGE-HA
+   Telegram / Okdesk       n8n / bridge delivery
+         |                      |
+         +----------+-----------+
+                    |
+                    v
+          BORIS / OPENCLAW BOT ON S1
+          internal container + scripts + skills + cron runtime
+                    |
+      +-------------+-------------+-------------------+
+      |                           |                   |
+      v                           v                   v
+  Bridge / models            Memory / rules       Local Boris PG
+  Claude/OpenAI path         RULES.md + storage   emails / sync contour
+      |                           |                   |
+      +-------------+-------------+-------------------+
+                    |
+                    v
+              BS24 INTEGRATIONS ON S2
+         n8n + PostgreSQL + Docling + okdesk-pipeline
+                    |
+                    v
+          BUSINESS LOOP / DISPATCH / FOLLOW-UP
+```
+
+## Карта OpenClaw-Бота
+
+```text
+OPENCLAW / BORIS (S1)
+|
++-- Container runtime
+|   `-- openclaw-kbxr-openclaw-1
+|
++-- Brain / policy
+|   +-- RULES.md  -> /data/.openclaw/workspace/memory/RULES.md
+|   +-- CLAUDE.md -> operational context only
+|   `-- openclaw.json / model layers / startup protection
+|
++-- Skills / tools / scripts
+|   +-- skills = orchestration layer
+|   +-- scripts = heavy business logic
+|   `-- cron/jobs = background automation layer
+|
++-- Delivery
+|   +-- Telegram
+|   +-- /hooks/
+|   +-- Agent Bridge
+|   `-- bridge-ha / public ingress path
+|
++-- Data
+|   +-- local Boris PG on S1
+|   +-- memory / mem_events / emails contour
+|   `-- S2 -> S1 sync contour
+|
+`-- Dependencies below/around
+    +-- Bridge / OAuth / model routing
+    +-- nginx / Caddy / ingress
+    +-- monitoring / self-healing
+    `-- S2 services: n8n, DB, Docling, okdesk-pipeline
+```
+
+## Уровни сверху вниз
+
+```text
+УРОВЕНЬ 1  Критичный фундамент              блоки 1-4
+УРОВЕНЬ 2  Core runtime                     блоки 5-8
+УРОВЕНЬ 3  Delivery и control               блоки 9-11
+УРОВЕНЬ 4  BS24 integrations                блоки 12-13
+УРОВЕНЬ 5  Business loop / roadmap boundary блок 14
+```
+
+## Legend
+
+- `critical foundation` = без этого верхние уровни не валидны
+- `watch item` = не авария, но weekly контроль обязателен
+- `legacy noise` = не current live dependency, но может шуметь
+- `do-not-touch` = contour только с explicit approve
 
 ## Критичный фундамент
+
+```text
+══════════════════════════════════════════════════════════════════════════════════════
+УРОВЕНЬ 1 — КРИТИЧНЫЙ ФУНДАМЕНТ
+servers / ingress / core services / Boris PG data plane
+══════════════════════════════════════════════════════════════════════════════════════
+```
 
 ### Блок 1. Серверы, SSH, базовая связность
 - Что это: `S1`, `S2`, SSH, hostname, uptime, disk, memory, ключевые listening ports.
@@ -131,6 +233,13 @@
 
 ## Core runtime
 
+```text
+══════════════════════════════════════════════════════════════════════════════════════
+УРОВЕНЬ 2 — CORE RUNTIME
+bridge / OpenClaw runtime / models / prompt-memory
+══════════════════════════════════════════════════════════════════════════════════════
+```
+
 ### Блок 5. Bridge / OAuth / HA delivery
 - Что это: Claude Bridge, OpenAI Bridge 2, bridge-ha, OAuth delivery contour.
 - Зачем это для BS24: без него нет AI-classification, enrichment, QC, Boris replies и failover.
@@ -237,6 +346,13 @@
 
 ## Delivery и control
 
+```text
+══════════════════════════════════════════════════════════════════════════════════════
+УРОВЕНЬ 3 — DELIVERY И CONTROL
+hooks / telegram / monitoring / cron / skills
+══════════════════════════════════════════════════════════════════════════════════════
+```
+
 ### Блок 9. Hooks, Agent Bridge, Telegram delivery
 - Что это: delivery chain from webhooks and chats into Boris/n8n and back.
 - Зачем это для BS24: это прямой operational интерфейс с координаторами, техниками и событиями Okdesk.
@@ -296,29 +412,184 @@
 - Source of truth: baseline, weekly audit rules, source-of-truth docs, Boris schema for structural map.
 - Live fact / expected state:
   - internal cron models = `bridge/claude-opus-4-6`
+  - `S1` file-level `jobs.json` = 13 enabled OpenClaw jobs
+  - `S1` host `crontab` = 21 active entries
+  - `S1` skills workspace = 24 top-level dirs: 22 real skills + service dirs `scripts`, `snippets`
+  - live plugin/tool layer confirmed by session traces + plugin files, not by old snapshot
   - stale timers already safe-disabled on `S1`
   - weekly digest may be `not yet run`, not broken
   - skills are repo/runtime tooling, not live business master by themselves
 - Как проверять:
-  - `jobs.json`
+  - `/var/lib/apps-data/openclaw/data/.openclaw/cron/jobs.json`
   - `crontab -l`
   - `systemctl list-timers` / exact timers
-  - skills count and placement only when relevant
+  - `/var/lib/apps-data/openclaw/data/.openclaw/workspace/skills`
+  - `/var/lib/apps-data/openclaw/data/scripts`
+  - recent main-agent session traces for `toolCall.name`
+  - plugin files under `/data/*/openclaw.plugin.json`
 - Stop condition:
   - nonzero `consecutiveErrors`
   - stale unexpected timer in active contour
   - cron schedule drift in critical sync contour
+  - missing critical skill/tooling entrypoint in live contour:
+    `email-handler`, `okdesk`, `find-executor`, `parse-file`, `tender-specialist`
 - Что нельзя трогать:
   - cron payload models
   - jobs master/effective layers
   - timers/services without owner decision
+  - helper scripts unless task is explicitly script-scope
+  - plugin files and tool-routing entrypoints without approve
 - Типичные drift / known issues:
   - first-run-pending vs broken cron confusion
   - timer debt vs real cron failure
+  - `scripts/` и `snippets/` выглядят как skills dirs, но не являются skills
+  - old snapshot name `parse-attachment` is obsolete; live skill = `parse-file`
+  - file-level `jobs.json` is schedule/config layer; runtime result state must be verified separately
 - Owner decision:
   - нужен для legacy timer contours and any cron redesign.
 
+#### Live inventory — Boris tools
+
+- Live-observed tool calls in sampled main-agent session traces on `2026-03-11`:
+  - `exec`, `process`, `read`, `web_fetch`, `write`, `edit`
+  - `memory_search`, `memory_get`
+  - `web_search`, `browser`, `message`
+  - `subagents`, `sessions_spawn`, `session_status`, `sessions_history`
+  - `gateway`, `cron`, `nodes`, `canvas`
+- Live plugin entrypoints present inside Boris container:
+  - `/data/route-command/openclaw.plugin.json`
+  - `/data/callback-forward/openclaw.plugin.json`
+- Operational reading:
+  - `exec` remains the main bridge from Boris to server-side helper scripts
+  - plugin files confirm `route-command` and Telegram callback forwarding contour exist in live runtime
+  - tools list above is `live-observed`, not guessed from old schema
+- Как видеть:
+  - inspect recent session traces for unique `toolCall.name`
+  - inspect plugin JSON files, not just docs
+- Как тестить read-only:
+  - tool existence = traces + plugin files + referenced helper paths
+  - do not "test visibility" by executing production-affecting tool actions
+
+#### Live inventory — Boris skills on `S1`
+
+- Count:
+  - 22 real skills with `SKILL.md`
+  - 2 service dirs without `SKILL.md`: `scripts`, `snippets`
+- Active skills map:
+  - Search / memory / docs:
+    `clawddocs`, `search`, `memory-search`, `email-search`, `gdrive-index`, `gog`
+  - Files / contracts / legal:
+    `parse-file`, `contract-audit`, `contract-legal`
+  - Okdesk / executors / estimates / supply:
+    `okdesk`, `find-executor`, `estimate-ticket`, `estimator`, `contractor-search`, `supply-search`, `vitrina`
+  - Chat / business behavior:
+    `email-handler`, `tender-specialist`, `negotiation`, `humanizer`
+  - Platform / status / bridge:
+    `claude-bridge`, `external-status`
+- Role reminders from current frontmatter:
+  - `email-handler` = входящие email notifications from n8n webhook
+  - `tender-specialist` = tender analysis + email dialog in TENDER chat
+  - `parse-file` = universal parser for Okdesk/email attachments, URLs, base64
+  - `okdesk` = issues, statuses, comments, companies, employees, digests, SLA
+  - `find-executor` = executor search and feedback loop
+  - `contractor-search` = multi-platform contractor lookup
+  - `estimator` / `estimate-ticket` = costing and budget estimation
+  - `vitrina` = Telegram-based issue marketplace / response flow
+  - `external-status` = Boris External health/status check
+  - `clawddocs` = local OpenClaw docs search without network
+- Note:
+  - `claude-bridge`, `humanizer`, `supply-search` currently do not expose a short one-line frontmatter description as clearly as the other skills; treat their names as live, but verify role from `SKILL.md` before changes
+- Как видеть:
+  - list dirs in `/var/lib/apps-data/openclaw/data/.openclaw/workspace/skills`
+  - confirm `SKILL.md` exists for real skills
+- Как тестить read-only:
+  - open `SKILL.md`
+  - identify linked helper scripts and dependent skills
+  - verify paths exist before any apply
+
+#### Live inventory — Boris helper layer behind skills
+
+- Current top-level non-backup helper files in `/var/lib/apps-data/openclaw/data/scripts`: `43`
+- Main groups:
+  - Tender / email:
+    `tender-analysis-helper.py`, `parse-tender-email.py`, `bidzaar-api.py`, `build-summary.py`, `email-search-helper.py`, `tg-send-helper.py`
+  - Okdesk / executors:
+    `okdesk-api-query.mjs`, `okdesk-assignee-snapshot.py`, `okdesk-comment-helper.py`, `okdesk-comment-poller.py`, `okdesk-digest-data.mjs`, `okdesk-issues-helper.py`, `executor-tracker-helper.py`, `find-executor-helper.py`, `get-statuses.mjs`
+  - Prices / estimates / market:
+    `estimator.py`, `generate-autoprice.py`, `check-prices.py`, `check-ozon-margin.py`, `check-ratio.py`, `market-prices.py`, `parse-pricelists.py`, `parse-pricelists-v2.py`, `sync-pricelists.sh`
+  - Contracts / legal / verification:
+    `contract-audit-helper.py`, `contract-parser.py`, `contract-term-monitor.py`, `check-company.py`, `check-ozdf.py`, `verify-final.py`
+  - Search / memory / docs:
+    `memory-search-helper.py`, `unified-search-helper.py`, `fix-docs.py`, `analyze-all-files.py`, `classify-and-fix.py`
+  - Platform / health / support:
+    `boris-health-check.py`, `claude-bridge-helper.py`, `dev-digest-data.mjs`, `kill-k-write.sh`
+- Operational reading:
+  - most business-heavy skills are `skill + script`, not pure prompt-only skills
+  - when checking a skill, verify its helper script layer immediately after `SKILL.md`
+
+#### Live inventory — OpenClaw `jobs.json` on `S1`
+
+- Count:
+  - 13 enabled jobs
+  - all inspected payload models = `bridge/claude-opus-4-6`
+- Current jobs:
+  - `Timur Morning Digest` — `0 9 * * *` — `Europe/Moscow`
+  - `Timur Evening Digest` — `0 18 * * *` — `Europe/Moscow`
+  - `Commitment Checker` — `30 9,14,18 * * *` — `Europe/Moscow`
+  - `okdesk-supabase-sync` — `10 6,12,18 * * *` — `Europe/Moscow`
+  - `gdrive-index-sync` — `0 7 * * *` — `Europe/Moscow`
+  - `HH Monitor v3 (scan+offer, 30min 07-21)` — `*/30 7-21 * * *` — `Europe/Moscow`
+  - `Email morning digest` — `5 9 * * *` — `Europe/Moscow`
+  - `Email evening digest` — `5 18 * * *` — `Europe/Moscow`
+  - `Weekly Self-Audit` — `0 10 * * 0` — `Europe/Moscow`
+  - `Price List Sync + Contract Check` — `0 4,10,16,22 * * *` — `Europe/Moscow`
+  - `Дайджест развития — Штаб` — `0 10 * * 1` — `Europe/Moscow`
+  - `Дайджест развития — Канал мастеров` — `0 8 * * 1` — `Europe/Moscow`
+  - `okdesk-comment-monitor` — `*/10 7-22 * * *` — no explicit `tz` field in inspected JSON
+- Important reading rule:
+  - current file-level `jobs.json` on `S1` gives schedule/model/config
+  - do not assume it alone gives full runtime result state
+- Как видеть:
+  - inspect `/var/lib/apps-data/openclaw/data/.openclaw/cron/jobs.json`
+  - verify `enabled`, schedule expr, `payload.model`
+- Как тестить read-only:
+  - compare names/schedules/models with canon
+  - if runtime status is needed, verify through logs/session traces/UI, not by guessing from `jobs.json`
+
+#### Live inventory — `S1` host `crontab`
+
+- Count:
+  - 21 active entries
+- Current groups:
+  - Watchdogs / monitor:
+    `monitor-locks.sh`, `memory-watchdog.py`, `promise-watchdog.py`, `ssh-watchdog.sh`, `watchdog-meta.sh`, `audit-structure.sh`
+  - Backup / KB:
+    `backup-full.sh`, `config-snapshot.sh`, `audit-backup.sh`, KB `rsync`, KB `generate_docs`, KB `run_verifications`, KB `archive_old`
+  - Boris data / sync / reminders:
+    `sync-executors-from-s2.sh`, `sync-pg-from-s2.sh`, `okdesk-assignee-snapshot.py`, `sync-prices-to-s2.sh`, `tender-remind-check.sh`
+  - Bridges / model protection:
+    `refresh-fallback.sh`, external `fix-model-strategy.py`, internal `circuit-breaker-internal.py`
+- Critical host-cron items not to forget:
+  - `sync-executors-from-s2.sh`
+  - `sync-pg-from-s2.sh`
+  - `refresh-fallback.sh`
+  - external `fix-model-strategy.py`
+  - internal `circuit-breaker-internal.py`
+- Как видеть:
+  - `crontab -l` on `S1`
+- Как тестить read-only:
+  - verify entry exists
+  - verify target path exists
+  - verify contour role before assuming it is broken or stale
+
 ## BS24 integrations
+
+```text
+══════════════════════════════════════════════════════════════════════════════════════
+УРОВЕНЬ 4 — BS24 INTEGRATIONS
+okdesk-pipeline / n8n / workflows / email / Docling / DB
+══════════════════════════════════════════════════════════════════════════════════════
+```
 
 ### Блок 12. Okdesk pipeline, dispatch, vitrina
 - Что это: pipeline intake -> enrich -> dispatch contour and executors vitrina.
@@ -378,6 +649,13 @@
   - нужен for `WF11`, `WF8 Watchdog`, or any workflow state change.
 
 ## Business loop / roadmap boundary
+
+```text
+══════════════════════════════════════════════════════════════════════════════════════
+УРОВЕНЬ 5 — BUSINESS LOOP / ROADMAP BOUNDARY
+current live state vs target product state
+══════════════════════════════════════════════════════════════════════════════════════
+```
 
 ### Блок 14. BS24 service cycle and motivation layer
 - Что это: 10-step service cycle, AI-package, execution/QC/follow-up/close, rating/XP/progression.
@@ -442,6 +720,8 @@
   - canonical public `bridge-ha` JSON probe
   - workflow IDs
   - cron/jobs/timers
+  - Boris tools/skills inventory spot-check:
+    `toolCall.name` sample, plugin files, 22 skills, 13 `jobs.json` jobs, 21 host-cron entries
   - `okdesk-pipeline` placement and `:3200`
   - prompt/rules path
   - model routing layer check
@@ -477,14 +757,21 @@
 
 ## Skills / Cron / Heartbeat placement rules
 
+- Tools:
+  - treat built-in tools as live only when confirmed by traces, plugin files, or audited runtime docs
+  - do not promote names from old schema to current canon without live evidence
+  - plugin entrypoints are part of Boris contour, but not equal to business source of truth
 - Skills:
   - skills are tooling layer, not live business source of truth by default
   - use them after lower-layer health is confirmed
   - skill problems do not explain infra failure until lower blocks are green
+  - `scripts/` and `snippets/` in skills workspace are service dirs, not real skills
+  - if a skill delegates heavy logic to `/data/scripts`, audit the helper script immediately after `SKILL.md`
 - Cron:
   - separate host crontab, OpenClaw `jobs.json`, and systemd timers
   - never assume one cron file is the only master without SoT check
   - classify `not yet run` separately from `broken`
+  - current file-level `jobs.json` is first of all config/schedule layer; runtime result state may live elsewhere
 - Heartbeats:
   - heartbeat/state belongs to monitoring contour, not to product truth
   - heartbeat stale = monitoring signal, not automatic proof of app failure
