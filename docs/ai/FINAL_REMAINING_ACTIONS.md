@@ -127,6 +127,17 @@
   - docs явно фиксируют current coverage profile = strong infra / partial BS24 business-liveness / weak semantic correctness;
   - dangerous contours перечислены отдельно и не описываются как safe defaults.
 
+### Observer doctor-agent MVP decision documented
+- Что это: в docs зафиксировано, что безопасный MVP observer doctor-agent для Бориса = `skill + script`, `manual only`, `read-only`, `report only`, `no auto-repair`, без `cron`/`heartbeat`/`workflow` формы на MVP.
+- Почему не осталось: это docs-only decision boundary по `docs/ai/DOCTOR_AGENT_DECISION.md`; server-side apply пока не нужен.
+- Нужен ли apply: нет.
+- Риск: будущая реализация может случайно превратиться в новый background monitoring/self-heal contour или выйти за границы observer-only.
+- Rollback: откатить docs-only updates, если owner позже выберет другую архитектуру или scope.
+- Post-check:
+  - docs фиксируют chosen architecture = `skill + script`;
+  - MVP ограничен `infra liveness` + `BS24 business-liveness`;
+  - semantic business correctness и любые repair actions остаются вне scope.
+
 ## 3. Decisions accepted, no apply needed
 
 ### Workflow states accepted as current norm
