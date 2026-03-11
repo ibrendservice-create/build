@@ -15,7 +15,7 @@
 - Эти документы нужны для аудита и поиска пробелов, но не заменяют live master.
 
 ## Repo-visible audited live facts
-- Для live-фактов, подтвержденных read-only аудитами `2026-03-10` и `2026-03-11`, repo-visible source of truth = `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCKS_5_6_7_8.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_10_MONITORING.md` и `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`.
+- Для live-фактов, подтвержденных read-only аудитами `2026-03-10` и `2026-03-11`, repo-visible source of truth = `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCKS_5_6_7_8.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_10_MONITORING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_11_CRON_SKILLS.md` и `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`.
 - Это относится к:
   - live placement/status `okdesk-pipeline`;
   - live model routing для internal cron и External Boris;
@@ -108,6 +108,26 @@
   - `okdesk-pipeline`
 - Для planning нельзя считать official OpenClaw doctor единственным control plane и нельзя повышать dangerous auto-repair contours до "safe default" без отдельного owner decision.
 - Любое расширение auto-repair scope/rights внутри этого control plane требует owner decision и explicit approve.
+
+## Cron / jobs / skills specifics
+- Internal cron model layer on audit date = `bridge/claude-opus-4-6`.
+- `jobs.json` on `S1` contains `13` enabled OpenClaw jobs, and all enabled jobs use `bridge/claude-opus-4-6`.
+- `jobs.json` is schedule/config layer and effective cron runtime config, but not runtime truth by itself; runtime result state must still be verified separately.
+- `Дайджест развития — Канал мастеров` on audit date is `enabled`, has `nextRunAtMs`, keeps `lastRunAtMs=null` and `consecutiveErrors=0`; this is `not yet run`, not broken cron.
+- `S1` stale timers `boris-email-router.timer` and `chief-doctor.timer` are already safe-disabled and should not be mixed with OpenClaw cron health.
+- Skills workspace structure on audit date:
+  - `24` top-level dirs
+  - `22` real skills
+  - service dirs `scripts`, `snippets`
+- Old snapshot name `parse-attachment` is obsolete; live skill entrypoint is `parse-file`.
+- Critical live entrypoints confirmed present:
+  - `email-handler`
+  - `okdesk`
+  - `find-executor`
+  - `parse-file`
+  - `tender-specialist`
+- Skills/tooling layer is repo/runtime orchestration, not live business master by itself.
+- Raw session trace sampling and plugin presence confirm live tooling availability, but they do not alone prove business-critical active contour.
 
 ## Live truth вне repo
 - Live server-side configs, runtime state, workflow state, systemd, nginx/Caddy, database schema, secrets и прочий server-side truth проверяются только вне repo.
