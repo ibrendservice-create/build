@@ -44,6 +44,18 @@ If a writer/enforcer exists, do not patch runtime directly unless the change pla
 - сохранить путь к backup;
 - не читать содержимое секретов.
 
+### 3a. Existing secret use
+Если согласованный operational `pre-check`, `apply` или `post-check` нельзя выполнить без уже существующего секрета:
+- использовать только уже существующие server-side `tokens / API keys / cookies / env secrets / existing secret-store values`;
+- использовать секрет только in-place из existing source, без намеренного вывода значения;
+- не печатать секрет в `stdout/stderr`, если это не требуется самим безопасным использованием;
+- не сохранять секрет в repo, docs, changelog, temp files или shell history намеренно;
+- не менять существующий секрет и не создавать новый;
+- не просить пользователя вручную вставлять секрет в чат, если его можно безопасно использовать из existing server-side source;
+- если секрет нельзя безопасно использовать без раскрытия значения, остановиться и зафиксировать это в change result.
+
+Это разрешение касается только использования, а не управления секретами.
+
 ### 4. Minimal apply
 Менять только то, что входит в согласованный scope.
 Не расширять задачу на ходу.
@@ -102,7 +114,7 @@ Rollback делать сразу, не откладывать.
 - prompt/memory live layout
 - restart критичных сервисов
 - destructive actions
-- secrets/tokens/credentials
+- rotate/revoke/create/delete secrets/tokens/credentials
 - правка runtime/derived файла без writer-chain анализа и согласованного плана по enforcer layer
 
 ## Формат change result

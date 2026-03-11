@@ -20,6 +20,12 @@
   - trigger writers
   - safe apply path
 - Не править runtime-файл напрямую, если его перезапишет writer/enforcer.
+- Для согласованных operational задач можно использовать уже существующие server-side `tokens / API keys / cookies / env secrets / existing secret-store values`, если без этого нельзя выполнить `pre-check`, `apply` или `post-check`.
+- Это разрешение касается только использования, а не управления секретами.
+- Не выводить секреты в ответе и не печатать их в `stdout/stderr` без необходимости.
+- Не сохранять секреты в repo, docs, changelog, temp files или shell history намеренно.
+- Не менять существующие секреты, не создавать новые и не просить пользователя вручную вставлять секрет в чат, если его можно безопасно использовать из existing server-side source.
+- Если секрет нельзя безопасно использовать без раскрытия значения, остановиться и сообщить об этом.
 - Не трогать без explicit approval:
   - workflows active flags
   - model routing live files
@@ -27,7 +33,7 @@
   - prompt/memory live layout
   - pipeline placement
   - monitoring / self-healing
-  - secrets
+  - rotate / revoke / create / delete secrets
   - destructive actions
 - Не редактировать live jobs.json руками.
 - Для server-side skill сначала найти точный live SKILL.md и связанные scripts.

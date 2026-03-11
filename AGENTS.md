@@ -38,6 +38,15 @@
 - обязательный post-change verification
 - не читать и не выводить секреты
 
+## Existing secret use for operational tasks
+- Для согласованных operational задач можно использовать уже существующие server-side `tokens / API keys / cookies / env secrets / existing secret-store values`, если без этого нельзя выполнить `pre-check`, `apply` или `post-check`.
+- Это разрешение касается только использования, а не управления секретами.
+- Не выводить секреты в ответе и не печатать их в `stdout/stderr`, если это не требуется самим безопасным использованием.
+- Не сохранять секреты в repo, docs, changelog, temp files или shell history намеренно.
+- Не менять существующие секреты и не создавать новые.
+- Не просить пользователя вручную вставлять секрет в чат, если его можно безопасно использовать из existing server-side source.
+- Если секрет нельзя безопасно использовать без раскрытия значения, остановиться и сообщить об этом.
+
 ## Server-side config rule
 - Before editing any live config, first identify:
   - source of truth
@@ -58,7 +67,7 @@
 - workflows и live workflow state
 - server-side truth вне repo
 - destructive actions
-- secrets / tokens / credentials
+- rotate / revoke / create / delete secrets / tokens / credentials
 - restart критичных сервисов
 - менять runtime вместо master
 - широкий refactor вне текущей задачи
