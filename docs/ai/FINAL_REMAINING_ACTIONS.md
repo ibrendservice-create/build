@@ -97,6 +97,21 @@
   - `changed_non_target_count=0`
   - structural apply успешен, но natural run verification ещё впереди; forced fallback canary отдельно не запускался
 
+### Telegram helper token-resolution contract hardened globally
+- Что это: narrow live apply для shared Telegram helper token-resolution contour на `S1`.
+- Почему не осталось: `tg-send-helper.py` больше не зависит от split contract между host env-file key и runtime env; historical class `TELEGRAM_BOT_TOKEN not found` закрыт на helper layer.
+- Нужен ли apply: нет, apply уже выполнен успешно.
+- Риск: future ручная правка helper lookup order или verifier drift может снова вернуть host/container mismatch и ложные проверки.
+- Rollback: восстановить backup `/root/tg-helper-token-hardening-20260311T173118Z`.
+- Post-check:
+  - `HOST_HELPER_GET_TOKEN=yes`
+  - `CT_HELPER_GET_TOKEN=yes`
+  - `RUNUSER_HELPER_GET_TOKEN=yes`
+  - helper caller inventory unchanged
+  - morning/evening digest hashes unchanged exactly
+  - `payload_job_drift=[]`
+  - `boris-health-check.py` использует boolean helper-resolution check
+
 ## 2. Docs-only resolved
 
 ### Canon aligned with audited live drift

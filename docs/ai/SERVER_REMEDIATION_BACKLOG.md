@@ -12,6 +12,7 @@
 - `docs/ai/DOCTOR_AGENT_DECISION.md`
 - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TENDER_SPECIALIST.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-11_bridge2_subscription_fix.md`
+- `docs/ai/SERVER_CHANGELOG_2026-03-11_tg_helper_token_hardening.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-11_HQ_REQUIRE_MENTION_FAILED.md`
 - `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`
 
@@ -161,6 +162,38 @@
   - structural apply successful
   - natural run verification ещё впереди
   - forced canary / forced-fallback test не выполнялся
+
+### S1 Telegram helper token-resolution contract hardened
+- Проблема: shared `tg-send-helper.py` имел split token contract: host env-file использовал `TG_BOT_TOKEN`, helper file parser искал только `TELEGRAM_BOT_TOKEN`, file read не был safe, и historical failure class уже подтверждалась как `TELEGRAM_BOT_TOKEN not found`.
+- Риск: helper мог вести себя по-разному между host/file/runtime contexts и снова ломать delivery contour при отсутствии inherited env или при verifier drift.
+- Source of truth: `docs/ai/SERVER_CHANGELOG_2026-03-11_tg_helper_token_hardening.md`.
+- Минимальное исправление:
+  - в `tg-send-helper.py` зафиксирован deterministic lookup order:
+    - env `TELEGRAM_BOT_TOKEN`
+    - env `TG_BOT_TOKEN`
+    - file `/etc/apps/secrets/openclaw.env` key `TELEGRAM_BOT_TOKEN`
+    - file `/etc/apps/secrets/openclaw.env` key `TG_BOT_TOKEN`
+  - file read сделан safe через `OSError` fallback
+  - miss-error не выводит token value
+  - `boris-health-check.py` переведён на boolean helper-resolution check через `resolve_helper_token(...)`
+- Что не менялось:
+  - jobs
+  - model routing
+  - bridge
+  - monitoring
+  - runtime config
+  - digest payloads
+- Rollback:
+  - `/root/tg-helper-token-hardening-20260311T173118Z`
+- Post-check:
+  - `HOST_HELPER_GET_TOKEN=yes`
+  - `CT_HELPER_GET_TOKEN=yes`
+  - `RUNUSER_HELPER_GET_TOKEN=yes`
+  - helper caller inventory unchanged
+  - morning/evening digest hashes unchanged exactly
+  - `payload_job_drift=[]`
+  - `py_compile` passed for both files
+  - `boris-health-check.py` now uses helper-resolution boolean check
 
 ## 2. Docs-only resolved
 
