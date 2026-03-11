@@ -8,6 +8,7 @@
 - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`
 - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`
 - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`
+- `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`
 - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TENDER_SPECIALIST.md`
 - `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`
 
@@ -117,6 +118,17 @@
   - `circuit-breaker-internal.py` не описан как source of truth для cron models;
   - model routing layering описан как operational risk, а не как runtime failure.
 
+### Doctor / self-heal control plane normalized in canon
+- Проблема: old mental model легко сводил Boris control plane к official OpenClaw `doctor / cron / heartbeat`, хотя read-only audit подтвердил другой live reality.
+- Риск: ошибочно считать monitoring/self-healing single-layer contour, недооценить dangerous auto-repair и расширить его без owner decision.
+- Source of truth: `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`.
+- Минимальное исправление: в canonical docs и planning docs зафиксировать, что Boris production control plane = custom multi-layer `doctor / monitor / watchdog / self-heal` stack; разделить contours на `safe observer`, `conditional repair`, `active self-heal`, `dangerous auto-repair`; отдельно зафиксировать current coverage profile = strong infra / partial BS24 business-liveness / weak semantic business correctness.
+- Rollback: откатить docs-only updates, которые переносят эту normalization в канон и backlog.
+- Post-check:
+  - canonical docs больше не описывают official OpenClaw doctor как полный prod control plane Бориса;
+  - dangerous contours перечислены явно: `watchdog-meta`, `service-guard`, `n8n-watchdog`, `n8n-doctor`, `monitor-locks.sh`, `workspace-validator`, `promise-watchdog`;
+  - docs требуют owner decision до любого расширения auto-repair.
+
 ## 3. Next server-side fixes by priority
 
 ### Tender specialist skill hygiene on S1
@@ -211,6 +223,17 @@
 - Post-check:
   - в каноне workflow отражён как `inactive`
   - backlog не требует отдельной активации этого workflow
+
+### Expansion of auto-repair rights inside doctor/self-heal contour
+- Проблема: current Boris control plane already has overlapping dangerous auto-repair contours, but docs without an explicit boundary make future widening look safer than it really is.
+- Риск: дополнительный blast radius по runtime/config/workflows, особенно при расширении прав у `watchdog-meta`, `service-guard`, `n8n-watchdog`, `n8n-doctor`, `monitor-locks.sh`, `workspace-validator`, `promise-watchdog`.
+- Source of truth: `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`.
+- Минимальное исправление: server-side apply по умолчанию не нужен; сначала owner decision, нужно ли вообще расширять auto-repair; только потом approve-only apply для конкретного contour.
+- Rollback: restore script/unit/cron/baseline changes и прежние repair boundaries из timestamped backups конкретного contour.
+- Post-check:
+  - classification observer/repair/self-heal не меняется без owner decision;
+  - official OpenClaw docs не используются как единственное обоснование для расширения Boris prod control plane;
+  - новые auto-repair rights не затрагивают соседние dangerous contours.
 
 ## 5. Postponed
 

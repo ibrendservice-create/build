@@ -103,6 +103,13 @@
 - что нельзя делать: автоматически считать weekly digest broken, а также автоматически чинить, отключать или удалять timers без owner decision и approve.
 - статус: active.
 
+### Doctor / self-heal control plane mismatch
+- симптом: official OpenClaw `doctor / cron / heartbeat` mental model покрывает только primitives, тогда как live Boris использует custom multi-layer `doctor / monitor / watchdog / self-heal` stack с overlapping auto-repair contours.
+- где проявляется: planning и remediation по `monitoring/self-healing` на `S1` и `S2`, classification of control authority, rollback scoping.
+- workaround: для repo planning считать source of truth = `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`; разделять contours на `safe observer`, `conditional repair`, `active self-heal`, `dangerous auto-repair`; фиксировать, что current profile = strong infra coverage + partial BS24 business-liveness coverage + weak semantic business correctness coverage; перед любым расширением auto-repair сначала получить owner decision.
+- что нельзя делать: считать official OpenClaw doctor полным описанием Boris production control plane; считать dangerous contours safe-by-default; расширять auto-repair у `watchdog-meta`, `service-guard`, `n8n-watchdog`, `n8n-doctor`, `monitor-locks.sh`, `workspace-validator` или `promise-watchdog` без owner decision и explicit approve.
+- статус: active.
+
 ### Tender specialist skill boundary and tool drift
 - симптом: server-side Boris skill `tender-specialist` на `S1` уже построен как `skill + script`, но в `SKILL.md` есть узкий tool/boundary drift: ссылка на несуществующий `parse-attachment`, слишком широкая формулировка про "видишь все сообщения пользователей и сам решаешь", и нет явной do-not-touch boundary для `routing/workflows/bridge/monitoring/model files/jobs`.
 - где проявляется: Boris tender contour на `S1`, чат ТЕНДЕР, orchestration layer поверх `tender-analysis-helper.py`.

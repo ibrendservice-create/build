@@ -7,7 +7,7 @@
 - Только repo docs и project instruction files.
 - Runtime, server-side truth, live workflows и secrets находятся вне этого repo.
 - `docs/ai/HANDOFF_2026-03-10.md` и внешний `Boris-Detail-Schema.txt` используются для аудита, а не как live master.
-- `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md` и `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md` это dated audit docs: они фиксируют проверенные live-факты на дату аудита, но не заменяют live master после этой даты.
+- `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md` и `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md` это dated audit docs: они фиксируют проверенные live-факты на дату аудита, но не заменяют live master после этой даты.
 
 ## Canonical read order
 1. `docs/ai/OPERATING_CONSENSUS.md`
@@ -22,13 +22,14 @@
 10. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`
 11. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`
 12. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md`
-13. `docs/ai/HANDOFF_2026-03-10.md`
-14. `Boris-Detail-Schema.txt` только если файл явно дан для аудита; сырой файл не копировать в repo.
+13. `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`
+14. `docs/ai/HANDOFF_2026-03-10.md`
+15. `Boris-Detail-Schema.txt` только если файл явно дан для аудита; сырой файл не копировать в repo.
 
 ## Document priority
 - `AGENTS.md` и `CLAUDE.md` это agent entry points; они должны ссылаться на один и тот же канон и не расходиться по правилам проекта.
 - Канон repo: этот файл плюс `docs/ai/PROJECT_MEMORY.md`, `docs/ai/SOURCE_OF_TRUTH.md`, `docs/ai/CHANGE_POLICY.md`, `docs/ai/VERIFICATION_MATRIX.md`, `docs/ai/KNOWN_BUGS_AND_WORKAROUNDS.md`.
-- Dated audit docs: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md` и `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`.
+- Dated audit docs: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md` и `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`.
 - Snapshot docs: `docs/ai/HANDOFF_2026-03-10.md` и внешний `Boris-Detail-Schema.txt`.
 - `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` = read-only audit helper по writer/enforcer chains; это не новый live master, а карта overwrite/restore контуров.
 - Live server-side truth проверяется только вне repo.
@@ -54,6 +55,7 @@
 - всегда иметь rollback;
 - всегда делать post-change verification;
 - не читать и не выводить секреты.
+- не расширять auto-repair contour без owner decision и explicit approve.
 
 Before editing any live config, first identify:
 - source of truth
@@ -91,6 +93,7 @@ If a writer/enforcer exists, do not patch runtime directly unless the change pla
 - restart критичных сервисов или контейнеров;
 - destructive actions;
 - широкий refactor вне текущей задачи.
+- расширение observer/repair/self-heal прав внутри monitoring / self-healing contour.
 
 ## Audit-backed live deltas as of 2026-03-10
 - Canonical placement `okdesk-pipeline` = `S2`; `HANDOFF` по этому контуру теперь snapshot drift.
@@ -138,6 +141,18 @@ If a writer/enforcer exists, do not patch runtime directly unless the change pla
 - Public `bridge-ha` probe считать valid не только по `HTTP 200`, но и по `application/json` / JSON body.
 - `bridge-ha` ambiguity сейчас классифицирована как `docs drift / ingress ambiguity`, а не как live outage.
 - По `ops` domain owner decision нужен только если владелец хочет supported `/bridge-ha/*` route и на этом домене.
+- Boris production control plane = custom multi-layer `doctor / monitor / watchdog / self-heal` stack, а не только official OpenClaw doctor path.
+- Official OpenClaw `doctor / cron / heartbeat` docs объясняют Gateway primitives, но не описывают текущий Boris production control plane целиком.
+- Repo-visible classification for current control plane:
+  - `safe observer`: `chief-doctor` read-only contour, `check-cron-health.sh`
+  - `conditional repair`: `memory-watchdog.py`, `ssh-watchdog.sh`
+  - `active self-heal`: `boris-doctor`, `monitor-safe`
+  - `dangerous auto-repair`: `watchdog-meta`, `service-guard`, `n8n-watchdog`, `n8n-doctor`, `monitor-locks.sh`, `workspace-validator`, `promise-watchdog`
+- Repo-visible coverage profile:
+  - strong infrastructure coverage
+  - partial BS24 business-liveness coverage
+  - weak semantic business correctness coverage
+- Любое расширение auto-repair поверх текущего control plane требует сначала owner decision, затем explicit approve.
 
 ## Remaining unresolved contradictions
 - Эти audit-backed facts корректны только на дату аудита `2026-03-10`; если задача зависит от их текущего live-состояния позже, требуется `SERVER_AUDIT_REQUIRED`.

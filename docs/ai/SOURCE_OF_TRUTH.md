@@ -15,7 +15,7 @@
 - Эти документы нужны для аудита и поиска пробелов, но не заменяют live master.
 
 ## Repo-visible audited live facts
-- Для live-фактов, подтвержденных read-only аудитами `2026-03-10` и `2026-03-11`, repo-visible source of truth = `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md` и `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`.
+- Для live-фактов, подтвержденных read-only аудитами `2026-03-10` и `2026-03-11`, repo-visible source of truth = `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md` и `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`.
 - Это относится к:
   - live placement/status `okdesk-pipeline`;
   - live model routing для internal cron и External Boris;
@@ -23,6 +23,7 @@
   - live gateway/file path details и active health-check assumptions;
   - canonical public `bridge-ha` probe и live ingress ambiguity по `ops` domain;
   - live Boris PG data plane on S1, `pg-tunnel-s2.service` и sync contour `S2 -> S1`;
+  - live doctor/monitor/watchdog/self-heal topology, risk classes и coverage profile;
   - live workflow statuses, явно проверенным в аудите;
   - S1 -> S2 alias drift vs network health.
 - Эти audit docs не заменяют live master после даты аудита; для более нового состояния нужен новый server audit.
@@ -72,12 +73,48 @@
 - Отсутствие `.openclaw/SOUL.md` на дату аудита зафиксировано как docs drift, а не как доказанный runtime failure.
 - Любые server-side изменения prompt/memory layout или loader-paths требуют explicit approve.
 
+## Doctor / monitor / self-heal control plane
+- Repo-visible source of truth для doctor/self-heal contour on `2026-03-11` = `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`.
+- Boris production control plane считать custom multi-layer stack:
+  - host `crontab`
+  - systemd services/timers
+  - custom doctors/watchdogs/monitors on `S1` and `S2`
+  - related state/baseline/rollback layers
+- Official OpenClaw `doctor / cron / heartbeat` docs описывают Gateway primitives, но не описывают текущий Boris production control plane целиком.
+- Repo-visible classification for live contours:
+  - `safe observer` = read-only observer/alert contour
+  - `conditional repair` = repair only under narrow trigger/cooldown
+  - `active self-heal` = regular autonomous repair loop with bounded scope
+  - `dangerous auto-repair` = contour that mutates runtime/config/workflows or widens blast radius
+- Dangerous contours currently include:
+  - `watchdog-meta`
+  - `service-guard`
+  - `n8n-watchdog`
+  - `n8n-doctor`
+  - `monitor-locks.sh`
+  - `workspace-validator`
+  - `promise-watchdog`
+- Coverage profile on audit date:
+  - strong infrastructure coverage
+  - partial BS24 business-liveness coverage
+  - weak semantic business correctness coverage
+- Для planning нельзя считать official OpenClaw doctor единственным control plane и нельзя повышать dangerous auto-repair contours до "safe default" без отдельного owner decision.
+- Любое расширение auto-repair scope/rights внутри этого control plane требует owner decision и explicit approve.
+
 ## Live truth вне repo
 - Live server-side configs, runtime state, workflow state, systemd, nginx/Caddy, database schema, secrets и прочий server-side truth проверяются только вне repo.
 - Если факт относится к live-системе и не подтвержден каноном repo, требуется `SERVER_AUDIT_REQUIRED`.
 
 ## Writer / enforcer discipline
 - Нельзя править runtime/derived файл, если его затем перезапишет startup, cron, doctor, monitor, self-heal, sync или другой writer/enforcer.
+- Doctor / monitor / self-heal contours сами могут быть writers/restorers:
+  - `workspace-validator`
+  - `service-guard`
+  - `watchdog-meta`
+  - `memory-watchdog`
+  - `promise-watchdog`
+  - `n8n-watchdog`
+  - `n8n-doctor`
 - Если контур живёт через layered sync, менять нужно master-слой, а не derived/runtime-слой.
 - Если apply всё же нужен в runtime, сначала требуется одно из трёх:
   - обновить master;

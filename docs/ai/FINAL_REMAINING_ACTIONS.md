@@ -116,6 +116,17 @@
   - канон требует сначала искать master, derived/runtime, writers/enforcers и trigger writers;
   - critical target files больше не трактуются как safe-to-edit runtime по умолчанию.
 
+### Doctor / self-heal control plane normalized in canon
+- Что это: в каноне и backlog зафиксировано, что Boris production control plane = custom multi-layer `doctor / monitor / watchdog / self-heal` stack, а не только official OpenClaw doctor path.
+- Почему не осталось: это docs-only normalization по `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`; отдельный server-side apply не нужен.
+- Нужен ли apply: нет.
+- Риск: снова планировать monitoring/self-healing так, будто official OpenClaw docs описывают весь prod control plane, либо расширить dangerous auto-repair без owner decision.
+- Rollback: откатить docs-only updates по canon/backlog, если более поздний live audit покажет иную control-plane topology.
+- Post-check:
+  - docs разделяют `safe observer`, `conditional repair`, `active self-heal`, `dangerous auto-repair`;
+  - docs явно фиксируют current coverage profile = strong infra / partial BS24 business-liveness / weak semantic correctness;
+  - dangerous contours перечислены отдельно и не описываются как safe defaults.
+
 ## 3. Decisions accepted, no apply needed
 
 ### Workflow states accepted as current norm
@@ -298,6 +309,24 @@
 - Post-check:
   - live rules path остается однозначным;
   - bootstrap читает ожидаемый rules file.
+
+### Doctor / monitor / self-heal contour expansion
+- Что это: любые попытки перевести observer -> repair, расширить rights/coverage существующего auto-repair или добавить новый dangerous auto-repair path.
+- Почему не осталось: current control plane уже имеет high overlap и high blast radius; новой approved задачи на расширение нет.
+- Нужен ли apply: нет, если нет отдельного owner decision и explicit approval.
+- Риск: усилить auto-repair поверх уже опасных contours:
+  - `watchdog-meta`
+  - `service-guard`
+  - `n8n-watchdog`
+  - `n8n-doctor`
+  - `monitor-locks.sh`
+  - `workspace-validator`
+  - `promise-watchdog`
+- Rollback: restore затронутых scripts, units, cron entries, baseline/registry logic и widened permissions из timestamped backups конкретного контура.
+- Post-check:
+  - risk class contour не изменился без зафиксированного owner decision;
+  - dangerous contours не получили новые repair права "по пути";
+  - official OpenClaw docs не используются как единственное обоснование для расширения prod control plane.
 
 ### Gateway, bridge, auth, routing, monitoring, secrets and destructive actions
 - Что это: любые изменения вне узко подтвержденных docs-only drift-контуров.
