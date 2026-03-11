@@ -61,6 +61,20 @@
 - что нельзя делать: предполагать `/opt/app/Caddyfile`, symlink в `sites-enabled` или local TLS на `8443` без проверки.
 - статус: mitigated.
 
+### Public bridge-ha URL ambiguity
+- симптом: `https://n8n.brendservice24.ru/bridge-ha/health` возвращает live JSON health, а `https://ops.brendservice24.ru/bridge-ha/health` возвращает `200 text/html`, хотя snapshot/topology docs могут визуально ассоциировать `bridge-ha` с `ops` domain.
+- где проявляется: public health probes, ingress runbooks, gateway audit.
+- workaround: считать canonical public probe только `https://n8n.brendservice24.ru/bridge-ha/health`; валидировать не только `HTTP 200`, но и `application/json` / JSON body; `ops` domain считать active domain без supported path `/bridge-ha/*`, пока владелец явно не решит иначе.
+- что нельзя делать: считать `ops.brendservice24.ru/bridge-ha/*` canonical route, принимать `200 text/html` за valid bridge health или менять ingress по snapshot docs без нового live-аудита и approve.
+- статус: mitigated.
+
+### S1 Boris PG tunnel legacy noise
+- симптом: на `S1` остаётся `pg-tunnel-s2.service` в состоянии `failed`, хотя current Boris PG mode = `local`, а port `172.18.0.1:15432` уже занят local `boris-emails-pg-1`.
+- где проявляется: PostgreSQL data plane planning on `S1`, systemd/monitoring noise, server audits.
+- workaround: считать current Boris PG contour на `S1` локальным (`boris-emails-pg-1`), не считать `pg-tunnel-s2.service` текущей live dependency; live sync `S2 -> S1` трактовать как `ssh/scp`-based via `sync-pg-from-s2.sh` и `sync-executors-from-s2.sh`; перед любым apply сначала получить owner decision: contingency contour ещё нужен или уже legacy.
+- что нельзя делать: "чинить" tunnel как будто это current live data plane, освобождать `172.18.0.1:15432` без понимания local PG contour или менять monitoring/self-healing вокруг этого unit без нового live-аудита и approve.
+- статус: active.
+
 ### Docling host-port assumption drift
 - симптом: docs могли предполагать host `:5001`, но live-аудит и locate подтверждают только container/docker-network expectation для Docling.
 - где проявляется: integration checks и OCR troubleshooting.

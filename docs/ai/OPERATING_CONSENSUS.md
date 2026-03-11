@@ -7,7 +7,7 @@
 - Только repo docs и project instruction files.
 - Runtime, server-side truth, live workflows и secrets находятся вне этого repo.
 - `docs/ai/HANDOFF_2026-03-10.md` и внешний `Boris-Detail-Schema.txt` используются для аудита, а не как live master.
-- `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md` и `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md` это dated audit docs: они фиксируют проверенные live-факты на дату аудита, но не заменяют live master после этой даты.
+- `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md` и `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md` это dated audit docs: они фиксируют проверенные live-факты на дату аудита, но не заменяют live master после этой даты.
 
 ## Canonical read order
 1. `docs/ai/OPERATING_CONSENSUS.md`
@@ -28,7 +28,7 @@
 ## Document priority
 - `AGENTS.md` и `CLAUDE.md` это agent entry points; они должны ссылаться на один и тот же канон и не расходиться по правилам проекта.
 - Канон repo: этот файл плюс `docs/ai/PROJECT_MEMORY.md`, `docs/ai/SOURCE_OF_TRUTH.md`, `docs/ai/CHANGE_POLICY.md`, `docs/ai/VERIFICATION_MATRIX.md`, `docs/ai/KNOWN_BUGS_AND_WORKAROUNDS.md`.
-- Dated audit docs: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md` и `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md`.
+- Dated audit docs: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md` и `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`.
 - Snapshot docs: `docs/ai/HANDOFF_2026-03-10.md` и внешний `Boris-Detail-Schema.txt`.
 - Live server-side truth проверяется только вне repo.
 
@@ -101,6 +101,18 @@
 - `Дайджест развития — Канал мастеров` в `jobs.json` = `enabled`, `nextRunAtMs` задан, `lastRunAtMs=null`; это сейчас трактуется как `not yet run`, а не как broken cron.
 - Для этого housekeeping-контура на S2 live опирается на `crontab`, а не на `systemd timers`.
 - Любые server-side изменения prompt/memory layout требуют explicit approve.
+
+## Weekly addenda 2026-03-11
+- `pg-tunnel-s2.service` на `S1` не является current live dependency; current Boris PG mode on `S1` = `local`.
+- `pg-tunnel-s2.service` конфликтует с local `boris-emails-pg-1` по `172.18.0.1:15432`.
+- Live sync `S2 -> S1` сейчас идёт через `ssh/scp` scripts, а не через `pg-tunnel-s2.service`.
+- `pg-tunnel-s2.service` сейчас классифицирован как `legacy noise` с `operational risk`, а не как runtime failure.
+- По `pg-tunnel-s2.service` нужен owner decision before apply: оставить contingency contour или выводить из эксплуатации.
+- Canonical public `bridge-ha` probe = `https://n8n.brendservice24.ru/bridge-ha/health`.
+- `ops.brendservice24.ru/bridge-ha/*` не является canonical route; `ops` domain активен, но path `/bridge-ha/*` на нём не поддерживается.
+- Public `bridge-ha` probe считать valid не только по `HTTP 200`, но и по `application/json` / JSON body.
+- `bridge-ha` ambiguity сейчас классифицирована как `docs drift / ingress ambiguity`, а не как live outage.
+- По `ops` domain owner decision нужен только если владелец хочет supported `/bridge-ha/*` route и на этом домене.
 
 ## Remaining unresolved contradictions
 - Эти audit-backed facts корректны только на дату аудита `2026-03-10`; если задача зависит от их текущего live-состояния позже, требуется `SERVER_AUDIT_REQUIRED`.

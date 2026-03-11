@@ -6,6 +6,8 @@
 - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`
 - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`
 - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`
+- `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`
+- `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`
 - `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`
 
 ## 1. Already fixed
@@ -92,6 +94,17 @@
   - gateway/Docling assumptions описаны как docs drift, не как live defect
   - backlog больше не держит этот contour в pending server-side fixes
 
+### Public bridge-ha canonical probe normalized in docs
+- Проблема: weekly read-only audit подтвердил ambiguity между `n8n.brendservice24.ru/bridge-ha/health` и `ops.brendservice24.ru/bridge-ha/health`.
+- Риск: false-positive health, если смотреть только на `HTTP 200`, и неверный ingress mental model при future changes.
+- Source of truth: `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`.
+- Минимальное исправление: в canonical docs закрепить, что canonical public probe = `https://n8n.brendservice24.ru/bridge-ha/health`; `ops.brendservice24.ru/bridge-ha/*` не считать canonical route; public probe валидировать по `application/json` / JSON body, а не только по `200`.
+- Rollback: откатить docs-only updates, которые нормализуют `bridge-ha` public probe в каноне.
+- Post-check:
+  - canonical docs больше не описывают `ops.brendservice24.ru/bridge-ha/*` как canonical route;
+  - public health probe в docs проверяется по JSON/application/json, а не только по `200`;
+  - drift помечен как docs ambiguity, а не как live outage.
+
 ### Model routing layering documented in canon
 - Проблема: snapshot docs и часть канона раньше описывали модели по значениям, но не раскладывали source of truth по слоям для internal defaults, internal cron и External Boris.
 - Риск: принять effective runtime file за master и вносить server-side изменения не в тот слой.
@@ -111,6 +124,18 @@
 - `Дайджест развития — Канал мастеров` оставлен без apply и не считается broken cron.
 
 ## 4. Approve-only fixes
+
+### pg-tunnel-s2 contingency contour on S1
+- Проблема: на `S1` остаётся `pg-tunnel-s2.service`, но weekly narrow audit подтвердил, что current Boris PG mode = `local`, current backend = `boris-emails-pg-1`, а tunnel конфликтует с local PG по `172.18.0.1:15432`.
+- Риск: operational noise, ложная диагностика PostgreSQL contour и accidental fix не того data plane.
+- Source of truth: `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`.
+- Минимальное исправление: server-side apply по умолчанию не нужен; сначала owner decision, считать ли contour contingency-слоем или выводить его из эксплуатации; только потом approve-only apply по unit/monitoring/local PG contour.
+- Rollback: для любого будущего apply откатывать пофайлово unit, auto-services / monitoring logic и local PG routing из backup на `S1`.
+- Post-check:
+  - `/var/lib/apps-data/infra-monitor/state/boris-pg-mode` = `local`
+  - `boris-emails-pg-1` healthy и слушает `172.18.0.1:15432`
+  - `sync-pg-from-s2.sh` / `sync-executors-from-s2.sh` продолжают работать через `ssh/scp`
+  - `pg-tunnel-s2.service` не трактуется как current live dependency без нового live-аудита
 
 ### okdesk-pipeline server-side placement changes
 - Проблема: live placement уже однозначно подтвержден на `S2`, но на `S1` остаётся stale path/symlink, который может провоцировать неверные server-side действия.

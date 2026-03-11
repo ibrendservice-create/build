@@ -65,6 +65,17 @@
   - backlog больше не держит этот contour как pending server-side fix;
   - gateway assumptions в docs совпадают с live locate.
 
+### Public bridge-ha canonical probe normalized in docs
+- Что это: docs приведены к weekly read-only факту, что canonical public `bridge-ha` probe = `https://n8n.brendservice24.ru/bridge-ha/health`, а `ops.brendservice24.ru/bridge-ha/*` не является canonical route.
+- Почему не осталось: current live ingress работает; drift был в docs / ingress mental model, а не в самом bridge-ha runtime.
+- Нужен ли apply: нет.
+- Риск: future checks могут снова получить false-positive, если смотреть только на `HTTP 200` и использовать `ops` path.
+- Rollback: откатить docs-only updates по `bridge-ha` canonical probe.
+- Post-check:
+  - canonical docs используют `n8n` URL как public probe;
+  - public probe в docs валидируется по JSON/application/json, а не только по `200`;
+  - `ops` path не описывается как supported canonical route без нового решения владельца.
+
 ### Workflow state documented by exact workflow IDs
 - Что это: live workflow state закреплен в docs по exact workflow IDs, а не только по названиям.
 - Почему не осталось: docs drift уже закрыт на уровне документации и reconciliation rules.
@@ -136,6 +147,27 @@
 - Если позже появится новый live drift после `2026-03-10`, нужен новый read-only audit перед любым apply.
 
 ## 5. Optional housekeeping only
+
+### pg-tunnel-s2 contingency contour on S1
+- Что это: residual tunnel-based contour для старого Boris PG mode на `S1`.
+- Почему не осталось: current live Boris PG mode уже `local`, local `boris-emails-pg-1` healthy, а `S2 -> S1` sync идёт через `ssh/scp` scripts; tunnel не является current live dependency.
+- Нужен ли apply: нет по умолчанию; только если owner отдельно решит оставить contour как contingency или выводить его из эксплуатации.
+- Риск: `failed` unit и monitoring noise могут путать диагностику и future apply planning.
+- Rollback: при любом будущем approve-only apply восстановить исходный unit / monitoring enrollment / local PG routing из backup.
+- Post-check:
+  - `/var/lib/apps-data/infra-monitor/state/boris-pg-mode` = `local`
+  - `service-guard` видит Boris PG contour healthy в local mode
+  - `sync-pg-from-s2.sh` и `sync-executors-from-s2.sh` продолжают работать без tunnel
+
+### ops-domain `/bridge-ha/*` support
+- Что это: потенциальное future-решение поддерживать `bridge-ha` не только на `n8n` domain, но и на `ops` domain.
+- Почему не осталось: current canonical public probe уже работает на `n8n` domain; `ops` domain активен, но path `/bridge-ha/*` на нём сейчас не поддерживается и не считается live outage.
+- Нужен ли apply: нет по умолчанию; только если owner явно захочет supported `/bridge-ha/*` route и на `ops` domain.
+- Риск: ненужный ingress change с затрагиванием `gateway`, `bridge` и failover routing.
+- Rollback: восстановить прежние `nginx`/`Caddy`/Cloudflare settings из backup конкретного контура.
+- Post-check:
+  - `https://n8n.brendservice24.ru/bridge-ha/health` остаётся valid JSON probe
+  - `ops` domain либо остаётся unsupported для `/bridge-ha/*`, либо после approve-only apply начинает давать тот же expected JSON
 
 ### S1 stale okdesk-pipeline path cleanup
 - Что это: cleanup stale `S1` path/symlink, который больше не считается runtime host.

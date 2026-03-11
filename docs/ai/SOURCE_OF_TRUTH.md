@@ -13,12 +13,14 @@
 - Эти документы нужны для аудита и поиска пробелов, но не заменяют live master.
 
 ## Repo-visible audited live facts
-- Для live-фактов, подтвержденных read-only аудитом `2026-03-10`, repo-visible source of truth = `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md` и `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`.
+- Для live-фактов, подтвержденных read-only аудитами `2026-03-10` и `2026-03-11`, repo-visible source of truth = `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md` и `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`.
 - Это относится к:
   - live placement/status `okdesk-pipeline`;
   - live model routing для internal cron и External Boris;
   - live prompt/memory paths и rules source of truth на S1;
   - live gateway/file path details и active health-check assumptions;
+  - canonical public `bridge-ha` probe и live ingress ambiguity по `ops` domain;
+  - live Boris PG data plane on S1, `pg-tunnel-s2.service` и sync contour `S2 -> S1`;
   - live workflow statuses, явно проверенным в аудите;
   - S1 -> S2 alias drift vs network health.
 - Эти audit docs не заменяют live master после даты аудита; для более нового состояния нужен новый server audit.
@@ -46,6 +48,20 @@
 - Active checks не требуют symlink-type для `/etc/nginx/sites-enabled/*`; regular files на S1 не являются server-side defect сами по себе.
 - Active checks не требуют host `:5001` для Docling; live expectation = container/docker-network health.
 - Для этих gateway/health assumptions server-side fix не требуется; это docs drift, закрытый аудитом и read-only locate.
+- Canonical public `bridge-ha` probe = `https://n8n.brendservice24.ru/bridge-ha/health`.
+- `ops.brendservice24.ru/bridge-ha/*` не считать canonical route: `ops` domain активен, но path `/bridge-ha/*` на нём в live ingress не поддерживается.
+- Public `bridge-ha` probe считать valid не только по `HTTP 200`, но и по `application/json` / JSON body.
+- Если владелец захочет supported `/bridge-ha/*` route и на `ops` domain, это owner decision + approve-only ingress change.
+- Для текущего состояния это docs drift / ingress ambiguity, а не подтверждённый live outage.
+
+## Boris PG data plane on S1
+- Current Boris PG mode on `S1` = `local`.
+- Current Boris PG backend on `S1` = local `boris-emails-pg-1` на `172.18.0.1:15432`.
+- `pg-tunnel-s2.service` не считать current live dependency: он конфликтует с local PG contour по `172.18.0.1:15432`.
+- Live sync `S2 -> S1` сейчас опирается на `ssh/scp` scripts (`sync-pg-from-s2.sh`, `sync-executors-from-s2.sh`), а не на `pg-tunnel-s2.service`.
+- `pg-tunnel-s2.service` сейчас классифицирован как legacy noise с operational risk, а не как runtime failure.
+- По future server-side судьбе `pg-tunnel-s2.service` нужен owner decision: contingency contour ещё нужен или уже legacy.
+- Любые server-side изменения unit, local PG contour, sync scripts или monitoring/self-healing вокруг этого контура требуют explicit approve.
 
 ## Prompt / memory specifics on S1
 - Для live правил на S1 repo-visible source of truth = `/data/.openclaw/workspace/memory/RULES.md`, как это подтверждено в `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`.
