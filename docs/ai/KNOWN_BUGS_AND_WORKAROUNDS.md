@@ -33,6 +33,16 @@
 - что нельзя делать: править runtime/derived файл в изоляции, если следующий writer/enforcer всё равно его перепишет.
 - статус: active.
 
+### Telegram group gating backup convergence gap
+- симптом: узкий runtime change в Telegram group gating может пройти immediate post-check, но validator backup остается stale, поэтому change нельзя считать устойчивым. На `2026-03-11` exactly this happened for Штаб chat `-1002799098412`: `requireMention` в runtime переключился `false -> true`, а backup contour не конвергировал и change был откатан.
+- где проявляется: `S1` internal Boris Telegram config contour:
+  - `/var/lib/apps-data/openclaw/data/.openclaw/openclaw.json`
+  - `/var/lib/apps-data/boris-doctor/backups/telegram-config.json`
+  - `workspace-validator` restore layer
+- workaround: перед новой попыткой отдельно понять refresh / ownership logic для `telegram-config.json`; success считать только если конвергировали и runtime field, и validator backup; сохранять узкий scope и не трогать `mentionPatterns`, `replyToMode`, topic overrides или `workspace-validator.py`, если это отдельно не approve-нуто.
+- что нельзя делать: объявлять fix успешным только по immediate runtime check; повторять runtime-only flip вслепую; записывать issue как fixed, пока current live state после rollback снова = `requireMention=false`.
+- статус: active.
+
 ### okdesk-pipeline deployment truth mismatch
 - симптом: snapshot docs расходились с live-аудитом по placement и состоянию деплоя `okdesk-pipeline`.
 - где проявляется: deployment planning, audit, rollout decisions.
