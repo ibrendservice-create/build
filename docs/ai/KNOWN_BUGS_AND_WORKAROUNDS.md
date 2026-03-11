@@ -19,6 +19,13 @@
 - что нельзя делать: редактировать live runtime config напрямую и считать его стабильным после restart.
 - статус: mitigated.
 
+### OpenClaw startup patch verification false-warning
+- симптом: `startup-cleanup.sh` может писать warning про `server.mjs NOT fully patched`, хотя active patched runtime file уже смонтирован и live contour работает.
+- где проявляется: internal Boris startup / config protection audit on `S1`.
+- workaround: различать active runtime path и verification path; учитывать, что mounted patched runtime file подтверждён на `/hostinger/server.mjs`, а warning path может ссылаться на `/data/server.mjs`; оценивать contour по фактическому startup result, runtime health и post-K repair effects, а не по одному warning line.
+- что нельзя делать: трактовать этот warning как достаточное доказательство сломанного startup/config-protection contour без дополнительной live-проверки.
+- статус: active.
+
 ### Runtime direct-edit overwrite by writers/enforcers
 - симптом: ручная правка runtime/derived файла исчезает после startup, cron, doctor, monitor, self-heal или sync.
 - где проявляется: `openclaw.json`, `jobs.json`, external `openclaw.json`, prompt/memory files, monitored config files, okdesk derived copies и другие layered contours.
