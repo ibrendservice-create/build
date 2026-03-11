@@ -15,7 +15,7 @@
 - Эти документы нужны для аудита и поиска пробелов, но не заменяют live master.
 
 ## Repo-visible audited live facts
-- Для live-фактов, подтвержденных read-only аудитами `2026-03-10` и `2026-03-11`, repo-visible source of truth = `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCKS_5_6_7_8.md` и `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`.
+- Для live-фактов, подтвержденных read-only аудитами `2026-03-10` и `2026-03-11`, repo-visible source of truth = `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCKS_5_6_7_8.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_10_MONITORING.md` и `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`.
 - Это относится к:
   - live placement/status `okdesk-pipeline`;
   - live model routing для internal cron и External Boris;
@@ -80,6 +80,10 @@
   - systemd services/timers
   - custom doctors/watchdogs/monitors on `S1` and `S2`
   - related state/baseline/rollback layers
+- Block 10 read-only result on `2026-03-11`:
+  - core monitoring contour is alive on both servers
+  - active outage is not confirmed
+  - current issue class = working control plane with legacy monitoring drift on `S1`
 - Official OpenClaw `doctor / cron / heartbeat` docs описывают Gateway primitives, но не описывают текущий Boris production control plane целиком.
 - Repo-visible classification for live contours:
   - `safe observer` = read-only observer/alert contour
@@ -98,6 +102,10 @@
   - strong infrastructure coverage
   - partial BS24 business-liveness coverage
   - weak semantic business correctness coverage
+- `monitor-safe.service` on both servers is `disabled/inactive`; stale `heartbeat-safe.json` by itself is not a standalone incident.
+- Stale monitored contours currently visible in `S1` monitoring-space:
+  - `pg-tunnel-s2`
+  - `okdesk-pipeline`
 - Для planning нельзя считать official OpenClaw doctor единственным control plane и нельзя повышать dangerous auto-repair contours до "safe default" без отдельного owner decision.
 - Любое расширение auto-repair scope/rights внутри этого control plane требует owner decision и explicit approve.
 
