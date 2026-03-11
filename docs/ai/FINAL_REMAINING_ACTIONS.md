@@ -59,6 +59,25 @@
   - сохранены `location = /webhook/email-att-parse`, generic `location /webhook/` и `/hooks/` contour
   - `nginx -t` successful, `systemctl is-active nginx` = `active`
 
+### S1 Bridge 2 subscription contour fixed
+- Что это: narrow live apply для internal Boris model routing -> Bridge 2 subscription contour на `S1`.
+- Почему не осталось: confirmed live `404` на `POST /openai/chat/completions` устранён; runtime переведён на `POST /openai/v1/chat/completions`; Boris-facing Bridge 2 paths теперь заведены только для подтверждённых live ids.
+- Нужен ли apply: нет, apply уже выполнен успешно.
+- Риск: будущая ручная правка runtime вместо master или добавление unsupported alias/id может снова вернуть `404` или ложное advertising.
+- Rollback: восстановить `model-strategy.json`, `openclaw.json`, `models.json`, `jobs.json` из backup `/root/bridge2-apply-20260311T133425Z` и повторно прогнать internal `fix-model-strategy.py`.
+- Post-check:
+  - `openai-bridge.service` остался `active`
+  - runtime `openclaw.json` содержит `openai-bridge2.baseUrl = http://172.18.0.1:8443/openai/v1`
+  - runtime alias keys есть для:
+    - `openai-bridge2/gpt-5`
+    - `openai-bridge2/gpt-5.2`
+    - `openai-bridge2/gpt-5.3-codex`
+    - `openai-bridge2/gpt-5.4`
+  - `jobs.json` по enabled models остался `bridge/claude-opus-4-6`
+  - после apply новые запросы идут только на `POST /openai/v1/chat/completions`
+  - live probes успешны для `gpt-5`, `gpt-5.2`, `gpt-5.3-codex`, `gpt-5.4`
+  - `gpt-5.4-codex` не добавлялся и остаётся unsupported
+
 ## 2. Docs-only resolved
 
 ### Canon aligned with audited live drift

@@ -11,6 +11,7 @@
 - `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`
 - `docs/ai/DOCTOR_AGENT_DECISION.md`
 - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TENDER_SPECIALIST.md`
+- `docs/ai/SERVER_CHANGELOG_2026-03-11_bridge2_subscription_fix.md`
 - `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`
 
 ## 1. Already fixed
@@ -78,6 +79,46 @@
   - `location = /webhook/email-att-parse`, generic `location /webhook/` и `/hooks/` block сохранены
   - `nginx -t` successful
   - `systemctl is-active nginx` = `active`
+
+### S1 Bridge 2 subscription contour fixed
+- Проблема: internal Boris Bridge 2 contour на `S1` ходил в `POST /openai/chat/completions` и ловил `HTTP 404`; runtime advertising для Bridge 2 был неполным; `gpt-5.4-codex` не имел live-supported exact id.
+- Риск: Boris получал live routing failure по Bridge 2 contour и мог рекламировать неполный/ошибочный набор Bridge 2 paths.
+- Source of truth: `docs/ai/SERVER_CHANGELOG_2026-03-11_bridge2_subscription_fix.md`.
+- Минимальное исправление:
+  - в `model-strategy.json` `providers.openai-bridge2.baseUrl` исправлен с `http://172.18.0.1:8443/openai` на `http://172.18.0.1:8443/openai/v1`
+  - в `providers.openai-bridge2.models` оставлены только live-supported ids:
+    - `gpt-5`
+    - `gpt-5.2`
+    - `gpt-5.3-codex`
+    - `gpt-5.4`
+  - в `model_aliases` оставлены только:
+    - `openai-bridge2/gpt-5`
+    - `openai-bridge2/gpt-5.2`
+    - `openai-bridge2/gpt-5.3-codex`
+    - `openai-bridge2/gpt-5.4`
+  - internal `fix-model-strategy.py` прогнан один раз
+- Что не менялось:
+  - `jobs.json` вручную
+  - `circuit-breaker-internal.py`
+  - `startup-cleanup.sh`
+  - `nginx`
+  - `openai-bridge.service`
+  - auth
+  - workflows
+  - monitoring
+  - external contour
+- Rollback: восстановить backup из `/root/bridge2-apply-20260311T133425Z` и повторно прогнать internal `fix-model-strategy.py`.
+- Post-check:
+  - `openai-bridge.service` = `active`
+  - runtime `openclaw.json` содержит `openai-bridge2.baseUrl = http://172.18.0.1:8443/openai/v1`
+  - runtime alias keys есть для:
+    - `openai-bridge2/gpt-5`
+    - `openai-bridge2/gpt-5.2`
+    - `openai-bridge2/gpt-5.3-codex`
+    - `openai-bridge2/gpt-5.4`
+  - после apply новые запросы идут только на `POST /openai/v1/chat/completions`
+  - live probes успешны для `gpt-5`, `gpt-5.2`, `gpt-5.3-codex`, `gpt-5.4`
+  - `gpt-5.4-codex` не добавлялся и остаётся unsupported
 
 ## 2. Docs-only resolved
 
@@ -238,19 +279,6 @@
   - `ss -ltn | grep :3200` на `S2`
   - отсутствие competing unit/process на `S1`
   - рабочие `S2` cron calls на `localhost:3200`
-
-### Model routing normalization
-- Проблема: live routing split между `model-strategy.json`, internal `openclaw.json`, `jobs.json` и external `openclaw.json`; snapshot docs устарели по cron и External Boris.
-- Риск: поломка internal cron, external Boris или fallback-chain при правке не того master-слоя.
-- Source of truth: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`.
-- Минимальное исправление: сначала зафиксировать intended cron override и intended external chain; потом при необходимости править только один master-слой за раз, не считая internal `openclaw.json`, `jobs.json` или external `openclaw.json` единственным master.
-- Дополнительный риск: periodic enforcer для internal `jobs.json` подтверждён слабее, чем external fixer layer; `circuit-breaker-internal.py` не считать source of truth для cron models.
-- Rollback: timestamped backup `model-strategy.json`, internal/external `openclaw.json` и `jobs.json` с возвратом исходных версий.
-- Post-check:
-  - `jq` на все model files
-  - сверка layering: default-chain vs cron vs external
-  - сравнение providers/fallbacks
-  - controlled cron/manual invocation для internal и external
 
 ### Prompt / memory source-of-truth cleanup on S1
 - Проблема: `.openclaw/SOUL.md` отсутствует, `RULES.md` живёт только в `workspace/memory`, а snapshot docs описывают другой layout.
