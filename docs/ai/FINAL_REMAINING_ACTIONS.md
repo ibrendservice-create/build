@@ -33,6 +33,21 @@
   - `systemctl is-active boris-email-router.timer chief-doctor.timer`
   - `systemctl status boris-email-router.service chief-doctor.service`
 
+### Cron delivery contour normalized for text-sending Boris jobs
+- Что это: canary-first live apply по cron delivery contour на `S1`.
+- Почему не осталось: false-`ok` на `Timur Morning Digest` закрыт в Phase A, `okdesk-comment-monitor` получил explicit `tz=Europe/Moscow`, а remaining scoped text-sending jobs в Phase B переведены на canonical stdin delivery tail.
+- Нужен ли apply: нет, apply уже выполнен успешно.
+- Риск: будущая ручная правка prompt tail может снова вернуть inline `"$TEXT"` delivery, `~/scripts` drift или ложный textual `ok`.
+- Rollback: пофайлово восстановить scoped jobs из backups:
+  - `/var/lib/apps-data/openclaw/data/.openclaw/cron/jobs.json.bak-20260311-070126`
+  - `/var/lib/apps-data/openclaw/data/.openclaw/cron/jobs.json.bak-20260311-073333`
+  - или из scoped backups `phaseA-scope-*` / `phaseB-scope-*`
+- Post-check:
+  - `Timur Morning Digest` canary session зафиксировал `OK: sent to -1002799098412`
+  - `okdesk-comment-monitor` live имеет explicit `tz=Europe/Moscow`
+  - scoped Phase B jobs live содержат canonical stdin send blocks
+  - `Timur Morning Digest`, `okdesk-comment-monitor` и `Дайджест развития — Канал мастеров` не были затронуты в Phase B
+
 ## 2. Docs-only resolved
 
 ### Canon aligned with audited live drift

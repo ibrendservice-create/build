@@ -103,6 +103,13 @@
 - что нельзя делать: автоматически считать weekly digest broken, а также автоматически чинить, отключать или удалять timers без owner decision и approve.
 - статус: active.
 
+### Cron Telegram delivery false-ok in isolated jobs
+- симптом: text-sending cron jobs могли завершаться с misleading `ok` или claim delivery success, хотя direct `tg-send-helper.py` send step реально падал из-за inline `"$TEXT"` delivery, path drift или isolated-session announce quirks.
+- где проявляется: Boris internal cron jobs, которые отправляют текстовые Telegram digests/alerts из isolated sessions.
+- workaround: использовать только canonical helper path `/data/scripts/tg-send-helper.py` и только stdin delivery с `message=-`; считать успех только по `OK: sent to ...`; для live post-check prefer run history + session trace, а не один внешний wrapper timeout. На `2026-03-11` scoped Boris jobs для этого контура нормализованы canary-first apply.
+- что нельзя делать: использовать `~/scripts/tg-send-helper.py`, передавать большой digest как positional `"$TEXT"` аргумент или трактовать textual `ok` как достаточное доказательство доставки без helper success marker.
+- статус: mitigated.
+
 ### Doctor / self-heal control plane mismatch
 - симптом: official OpenClaw `doctor / cron / heartbeat` mental model покрывает только primitives, тогда как live Boris использует custom multi-layer `doctor / monitor / watchdog / self-heal` stack с overlapping auto-repair contours.
 - где проявляется: planning и remediation по `monitoring/self-healing` на `S1` и `S2`, classification of control authority, rollback scoping.

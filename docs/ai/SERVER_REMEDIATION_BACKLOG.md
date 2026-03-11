@@ -36,6 +36,28 @@
   - `systemctl is-active boris-email-router.timer chief-doctor.timer`
   - `systemctl status boris-email-router.service chief-doctor.service`
 
+### S1 cron delivery contour normalized for scoped text jobs
+- Проблема: `Timur Morning Digest` уже подтвердил live false-`ok` из-за failed Telegram send, а remaining text-sending cron jobs всё ещё использовали старый inline delivery tail с positional `"$TEXT"`.
+- Риск: missed digests/alerts при misleading success status, plus future reintroduction of helper-path / quoting drift.
+- Source of truth:
+  - `docs/ai/SERVER_CHANGELOG_2026-03-11_CRON_DELIVERY_PHASE_B.md`
+  - Phase A live post-check on `2026-03-11`
+- Минимальное исправление: canary-first rollout завершён.
+  - Phase A:
+    - `okdesk-comment-monitor` -> explicit `tz=Europe/Moscow`
+    - `Timur Morning Digest` -> canonical stdin delivery tail
+  - Phase B:
+    - remaining 7 approved text-sending jobs -> canonical stdin delivery tails
+- Rollback: restore только scoped jobs из backups:
+  - `/var/lib/apps-data/openclaw/data/.openclaw/cron/jobs.json.bak-20260311-070126`
+  - `/var/lib/apps-data/openclaw/data/.openclaw/cron/jobs.json.bak-20260311-073333`
+  - или per-job restore из scoped backups `phaseA-scope-*` / `phaseB-scope-*`
+- Post-check:
+  - Phase A canary session содержит real `OK: sent to -1002799098412`
+  - scoped Phase B jobs больше не содержат old actionable inline send lines
+  - `Commitment Checker` и `Дайджест развития — Штаб` отдельно проверены как multi-send jobs
+  - out-of-scope jobs не изменялись
+
 ## 2. Docs-only resolved
 
 ### Canon aligned with audited live drift
