@@ -15,7 +15,7 @@
 - Эти документы нужны для аудита и поиска пробелов, но не заменяют live master.
 
 ## Repo-visible audited live facts
-- Для live-фактов, подтвержденных read-only аудитами `2026-03-10` и `2026-03-11`, repo-visible source of truth = `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCKS_5_6_7_8.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_10_MONITORING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_11_CRON_SKILLS.md` и `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`.
+- Для live-фактов, подтвержденных read-only аудитами `2026-03-10` и `2026-03-11`, repo-visible source of truth = `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCKS_5_6_7_8.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_10_MONITORING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_11_CRON_SKILLS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_12_TOOLS_PLUGINS.md` и `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`.
 - Это относится к:
   - live placement/status `okdesk-pipeline`;
   - live model routing для internal cron и External Boris;
@@ -24,6 +24,7 @@
   - canonical public `bridge-ha` probe и live ingress ambiguity по `ops` domain;
   - live Boris PG data plane on S1, `pg-tunnel-s2.service` и sync contour `S2 -> S1`;
   - live doctor/monitor/watchdog/self-heal topology, risk classes и coverage profile;
+  - live Boris tools/plugin entrypoints/helper-script contour;
   - live workflow statuses, явно проверенным в аудите;
   - S1 -> S2 alias drift vs network health.
 - Эти audit docs не заменяют live master после даты аудита; для более нового состояния нужен новый server audit.
@@ -128,6 +129,30 @@
   - `tender-specialist`
 - Skills/tooling layer is repo/runtime orchestration, not live business master by itself.
 - Raw session trace sampling and plugin presence confirm live tooling availability, but they do not alone prove business-critical active contour.
+
+## Boris tools / plugin entrypoints / helper-script specifics
+- Repo-visible read-only result on `2026-03-11`:
+  - live tooling contour is confirmed
+  - sampled `S1` main-agent traces directly confirm real `exec` and `process` tool events
+  - `exec` remains the main bridge from Boris to server-side helper scripts
+  - `process` is the confirmed follow-up layer for long-running `exec`
+- Live plugin entrypoints confirmed present:
+  - `/data/route-command/openclaw.plugin.json`
+  - `/data/callback-forward/openclaw.plugin.json`
+- Sampled helper-path evidence in `exec` calls includes:
+  - `/data/scripts/okdesk-comment-poller.py`
+  - `/data/.openclaw/workspace/scripts/okdesk-supabase-sync.mjs`
+- This contour is currently classified as:
+  - `OK with WARN`
+  - not live outage
+  - mostly docs / mental-model / inspection-method drift
+- Live tool inventory must be proven by:
+  - traces
+  - plugin entrypoints
+  - helper-path evidence
+- Old schema/snapshot assumptions alone do not prove live tool inventory.
+- Plugin presence alone does not prove business-critical active contour.
+- Any server-side changes to plugin files, tool-routing entrypoints or helper scripts require explicit approve.
 
 ## Live truth вне repo
 - Live server-side configs, runtime state, workflow state, systemd, nginx/Caddy, database schema, secrets и прочий server-side truth проверяются только вне repo.
