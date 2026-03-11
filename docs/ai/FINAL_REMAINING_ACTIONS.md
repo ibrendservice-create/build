@@ -78,6 +78,25 @@
   - live probes успешны для `gpt-5`, `gpt-5.2`, `gpt-5.3-codex`, `gpt-5.4`
   - `gpt-5.4-codex` не добавлялся и остаётся unsupported
 
+### Exact digest fallback chains isolated for morning and evening jobs
+- Что это: narrow live apply для two exact digest cron jobs на `S1`:
+  - `879abd47-d390-4a77-84ba-0e4631130278` `Timur Evening Digest`
+  - `e5dff9f8-49ea-4623-8427-58ba62499a3b` `Timur Morning Digest`
+- Почему не осталось: exact per-job fallback chain уже добавлен и materialized через dedicated non-default agents; оба jobs больше не сидят на shared `agentId=main` contour.
+- Нужен ли apply: нет, apply уже выполнен успешно.
+- Риск: future ручная правка runtime вместо `model-strategy.json` или broad change shared fallback contour может случайно убрать per-job isolation или задеть unrelated cron jobs.
+- Rollback: восстановить backup соответствующего apply и повторно прогнать internal `fix-model-strategy.py`:
+  - `/root/timur-evening-fallback-20260311T164648Z`
+  - `/root/timur-morning-fallback-20260311T165436Z`
+- Post-check:
+  - `Timur Evening Digest` = `agentId=cron-timur-evening-digest`
+  - `Timur Morning Digest` = `agentId=cron-timur-morning-digest`
+  - `agents.list` содержит `main`, `cron-timur-evening-digest`, `cron-timur-morning-digest`
+  - `payload.model` для обоих остался `bridge/claude-opus-4-6`
+  - delivery hash для обоих не изменился
+  - `changed_non_target_count=0`
+  - structural apply успешен, но natural run verification ещё впереди; forced fallback canary отдельно не запускался
+
 ## 2. Docs-only resolved
 
 ### Canon aligned with audited live drift

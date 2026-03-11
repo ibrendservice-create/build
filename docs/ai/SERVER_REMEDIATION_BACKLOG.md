@@ -121,6 +121,47 @@
   - live probes успешны для `gpt-5`, `gpt-5.2`, `gpt-5.3-codex`, `gpt-5.4`
   - `gpt-5.4-codex` не добавлялся и остаётся unsupported
 
+### S1 digest fallback chains isolated for exact morning and evening jobs
+- Проблема: `Timur Evening Digest` и `Timur Morning Digest` не имели exact fallback chain и сидели на shared contour через `agentId=main`, поэтому при деградации primary модели не было узкого per-job failover только для этих jobs.
+- Риск: shared fallback changes затрагивали бы лишние cron jobs, а per-job failover для двух важных digest contours оставался недоказанно невыделенным.
+- Source of truth: `docs/ai/SERVER_CHANGELOG_2026-03-11_digest_fallback_chain_morning_evening.md`.
+- Минимальное исправление:
+  - в `model-strategy.json` добавлены exact `cron_job_routes` для:
+    - `879abd47-d390-4a77-84ba-0e4631130278` `Timur Evening Digest`
+    - `e5dff9f8-49ea-4623-8427-58ba62499a3b` `Timur Morning Digest`
+  - runtime materialized dedicated non-default agents:
+    - `cron-timur-evening-digest`
+    - `cron-timur-morning-digest`
+  - exact fallback chain для обоих:
+    - `bridge/claude-opus-4-6`
+    - `openai-bridge2/gpt-5`
+    - `openai/gpt-5`
+    - `nvidia/moonshotai/kimi-k2.5`
+- Что не менялось:
+  - delivery blocks
+  - old positional send
+  - raw numeric target fallback
+  - unrelated cron jobs
+  - `HQ requireMention`
+  - `telegram-config`
+  - `workspace-validator`
+  - `bridge / monitoring / workflows`
+  - OpenClaw core runtime
+- Rollback:
+  - `/root/timur-evening-fallback-20260311T164648Z`
+  - `/root/timur-morning-fallback-20260311T165436Z`
+  - после restore повторно прогнать internal `fix-model-strategy.py`
+- Post-check:
+  - evening job = `agentId=cron-timur-evening-digest`
+  - morning job = `agentId=cron-timur-morning-digest`
+  - `agents.list` содержит `main`, `cron-timur-evening-digest`, `cron-timur-morning-digest`
+  - `payload.model` unchanged for both
+  - delivery hash unchanged for both
+  - `changed_non_target_count=0`
+  - structural apply successful
+  - natural run verification ещё впереди
+  - forced canary / forced-fallback test не выполнялся
+
 ## 2. Docs-only resolved
 
 ### Canon aligned with audited live drift
