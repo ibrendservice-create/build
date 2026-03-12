@@ -15,6 +15,7 @@
 - `docs/ai/SERVER_CHANGELOG_2026-03-11_bridge2_subscription_fix.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-11_tg_helper_token_hardening.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-11_boris_wave0_chat_hardstop.md`
+- `docs/ai/SERVER_CHANGELOG_2026-03-12_boris_group_selfmod_deny_and_route_closure.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-11_HQ_REQUIRE_MENTION_FAILED.md`
 - `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`
 
@@ -235,7 +236,54 @@
   - `/allowlist add|remove` rejected
   - rejected `/config set` did not change `openclaw.json` hash
 - Important limit:
-  - `/route` intentionally remained open and is the next separate hardening contour
+  - this Wave 0 itself did not close custom `/route`
+  - separate `/route` closure was later applied successfully on `2026-03-12`; see `docs/ai/SERVER_CHANGELOG_2026-03-12_boris_group_selfmod_deny_and_route_closure.md`
+
+### S1 group-scoped self-mod deny and formal `/route` closure applied
+- Проблема: after successful Wave 0, custom `route-command` still remained a separate persistent chat-write contour, and 6 shared Telegram groups still had no group-scoped deny for runtime/self-admin classes.
+- Риск: shared groups still kept a live path for `/route`-style config mutation and self-admin surfaces even though official chat-admin keys were already closed.
+- Source of truth: `docs/ai/SERVER_CHANGELOG_2026-03-12_boris_group_selfmod_deny_and_route_closure.md`.
+- Минимальное исправление:
+  - changed only `/var/lib/apps-data/openclaw/data/.openclaw/openclaw.json`
+  - `plugins.entries.route-command.enabled: true -> false`
+  - added identical `tools.deny` to exact 6 Telegram groups:
+    - `-1002799098412`
+    - `-1003750223589`
+    - `-1001927186400`
+    - `-5245442089`
+    - `-5091773177`
+    - `-4972868360`
+  - exact deny list:
+    - `group:runtime`
+    - `group:automation`
+    - `group:nodes`
+    - `sessions_spawn`
+    - `sessions_send`
+- Что не менялось:
+  - per-agent `main` policy
+  - `jobs.json`
+  - plugin files
+  - hooks
+  - model routing
+  - digests
+  - DMs
+- Rollback: не потребовался; backup = `/root/boris-route-closure-wave-20260312T083545Z`.
+- Post-check:
+  - `route-command.enabled=false`
+  - all 6 groups now contain exact `tools.deny`
+  - semantic diff in `openclaw.json` contains only 7 expected paths
+  - `/route` formally closed
+  - `callback-forward` unchanged:
+    - `eligible=true`
+    - `disabled=false`
+    - `managedByPlugin=false`
+  - employee capabilities preserved in the same groups:
+    - `browser=true`
+    - `web_search=true`
+    - `web_fetch=true`
+    - `image=true`
+  - `group:fs` intentionally remains open
+  - file-based self-mod risk reduced, not fully removed
 
 ## 2. Docs-only resolved
 
@@ -359,7 +407,7 @@
 - Rollback: откатить docs-only correction, если более поздний live audit покажет иную reality.
 - Post-check:
   - backlog no longer keeps a separate Telegram restore apply contour
-  - next Boris hardening contour in docs = `/route` closure
+  - historical next Boris hardening contour `/route` is now closed by `docs/ai/SERVER_CHANGELOG_2026-03-12_boris_group_selfmod_deny_and_route_closure.md`
 
 ## 3. Next server-side fixes by priority
 
@@ -418,31 +466,12 @@
 
 ## 4. Approve-only fixes
 
-### Separate `/route` closure on S1 is the next active hardening contour
-- Проблема: custom `route-command` остаётся отдельным persistent chat-write contour и пишет `openclaw.json` из чата вне official Wave 0 controls.
-- Риск: even after successful official chat-admin hard stop persistent chat-write contour remains open until `/route` is closed separately.
-- Source of truth:
-  - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_TG_HEALTH_PATH_CONTRADICTION.md`
-  - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TG_RUNTIME_BLOCKER_CONTEXT.md`
-  - `docs/ai/SERVER_CHANGELOG_2026-03-11_boris_wave0_chat_hardstop.md`
-  - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BORIS_CHAT_HARDENING.md`
-  - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_12_TOOLS_PLUGINS.md`
-- Минимальное исправление: делать только отдельным approved hardening wave with plugin/control-plane review; old Telegram restore contour is closed as telemetry-only and no longer blocks this wave.
-- Guardrails:
-  - do not use `openclaw gateway call health --json` as Telegram runtime proof on `S1`
-  - if Telegram runtime proof is needed before or after `/route` work, use `openclaw channels status --json --probe` only in successful authenticated gateway context and without config-only fallback
-- Rollback: file-level/plugin-level restore exact `/route` contour from timestamped backups.
-- Post-check:
-  - persistent routing write from chat is gone
-  - `callback-forward` and neighboring control-plane behavior stay intact
-  - no Telegram runtime verdict is taken from gateway-health-only telemetry
-
 ### Boris employee architecture hardening program on S1
 - Проблема: Boris must remain a full employee agent, but current shared-trust contour still mixes employee capabilities with self-modification / self-admin / owner-policy and system-core boundaries.
 - Риск:
   - wrong hardening can kill Boris employee capabilities
   - wrong separation can mix business work, owner policy, business memory, session memory and system core
-  - stronger per-agent hardening of `main` before cron split can hit `11` enabled `main` jobs
+  - stronger per-agent hardening of `main` before cron split can hit `10` enabled `main` jobs and one additional enabled job with `agentId=null` (`okdesk-comment-monitor`)
 - Source of truth: `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md`.
 - Минимальное исправление:
   - no direct live fix in this backlog item
