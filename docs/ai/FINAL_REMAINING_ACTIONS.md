@@ -222,6 +222,58 @@
   - `HH Monitor v3` natural run observed on `cron-hh-monitor-v3` with `lastStatus=ok`
 - Rollback: не потребовался; backup лежит в `/root/cron-split-main-20260312T094923Z`.
 
+### Main per-agent hardening wave on S1
+- Что это: narrow live apply for `S1` internal OpenClaw per-agent tool policy on `agents.list[id=main]`.
+- Почему не осталось: apply уже выполнен успешно и добавил exact per-agent deny layer on `main` without touching cron/jobs/model routing/hooks or Boris employee capabilities.
+- Source of truth:
+  - `docs/ai/SERVER_CHANGELOG_2026-03-12_main_per_agent_hardening_wave.md`
+  - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md`
+- Что изменилось:
+  - changed only `/var/lib/apps-data/openclaw/data/.openclaw/openclaw.json`
+  - added only `agents.list[id=main].tools.deny`
+  - exact value:
+    - `group:automation`
+    - `group:nodes`
+    - `sessions_spawn`
+    - `sessions_send`
+- Что не менялось:
+  - `group:runtime`
+  - `group:fs`
+  - global `tools.*`
+  - Telegram group overlays
+  - `model-strategy.json`
+  - `jobs.json`
+  - `models.json`
+  - plugins
+  - hooks
+  - `callback-forward`
+  - owner policy
+  - memory layout
+  - business workspace
+  - model picker
+  - monitoring
+  - stale cleanup contours
+- Post-check:
+  - semantic diff limited to `agents.list[id=main].tools.deny`
+  - `main` identity unchanged
+  - `jobs.json` unchanged:
+    - `enabled_total=13`
+    - `enabled_on_main=0`
+    - `enabled_implicit=0`
+  - `route-command.enabled=false` unchanged
+  - `callback-forward.enabled=true` unchanged
+  - all 6 Telegram group overlays unchanged
+  - exact `main.tools.deny` value confirmed
+  - structural compare against backup matched outside `main.tools`
+  - exact gateway-side runtime resolver proof was not re-run in the current safe operator context
+- Rollback: не потребовался; backup лежит в `/root/main-per-agent-hardening-20260312T115001Z`.
+- Employee capabilities preserved:
+  - `browser`
+  - `web_search`
+  - `web_fetch`
+  - `image`
+  - `group:runtime` и `group:fs` intentionally were not touched
+
 ## 2. Docs-only resolved
 
 ### Canon aligned with audited live drift
@@ -402,12 +454,11 @@
   - Wave 0 already closed official chat-admin surfaces
   - `/route` closure and group-scoped self-mod deny are already applied
   - `cron split off main` is already completed successfully
+  - stronger per-agent hardening of `main` is already completed successfully
   - shared trust boundary still remains
   - owner policy and business memory are still not separated from system/core planning
-  - stronger per-agent hardening of `main` is now unblocked, but still requires its own approved wave
 - Source of truth: `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md`.
 - Exact next architecture waves to preserve:
-  - stronger per-agent hardening of `main`
   - `owner policy layer`
   - `business memory writer`
   - `employee workspace / safe business file tooling`
@@ -417,7 +468,7 @@
   - do not blanket-deny browser/web/file business work
   - do not mix business work with system-core mutation
   - do not move owner authority into normal business memory
-  - do not broaden `main` hardening outside a separate approved wave
+  - do not mix the next wave with owner-policy/business-memory/model-picker/routing redesign
 - Rollback:
   - not applicable until a specific approved server-side wave exists
 - Post-check:

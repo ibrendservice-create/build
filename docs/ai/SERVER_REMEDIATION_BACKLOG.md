@@ -17,6 +17,7 @@
 - `docs/ai/SERVER_CHANGELOG_2026-03-11_boris_wave0_chat_hardstop.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-12_boris_group_selfmod_deny_and_route_closure.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-12_cron_split_off_main.md`
+- `docs/ai/SERVER_CHANGELOG_2026-03-12_main_per_agent_hardening_wave.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-11_HQ_REQUIRE_MENTION_FAILED.md`
 - `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`
 
@@ -319,6 +320,56 @@
     - `HH Monitor v3` ran on `cron-hh-monitor-v3` with `lastStatus=ok`
   - main cron blocker removed
 
+### S1 main per-agent hardening wave applied
+- Проблема: after `/route` closure, group-scoped deny and cron split off `main`, shared `main` still had no per-agent deny layer for control-plane and session-orchestration surfaces.
+- Риск: `main` remained broader than needed even though enabled cron jobs on `main` were already `0`; wrong hardening here still risked killing Boris employee capabilities.
+- Source of truth: `docs/ai/SERVER_CHANGELOG_2026-03-12_main_per_agent_hardening_wave.md`.
+- Минимальное исправление:
+  - changed only `/var/lib/apps-data/openclaw/data/.openclaw/openclaw.json`
+  - added only `agents.list[id=main].tools.deny`
+  - exact value:
+    - `group:automation`
+    - `group:nodes`
+    - `sessions_spawn`
+    - `sessions_send`
+- Что не менялось:
+  - `group:runtime`
+  - `group:fs`
+  - global `tools.*`
+  - Telegram group overlays
+  - `model-strategy.json`
+  - `jobs.json`
+  - `models.json`
+  - plugins
+  - hooks
+  - `callback-forward`
+  - owner policy
+  - memory layout
+  - business workspace
+  - model picker
+  - monitoring
+  - stale cleanup contours
+- Rollback: не потребовался; backup = `/root/main-per-agent-hardening-20260312T115001Z`.
+- Post-check:
+  - semantic diff limited to `agents.list[id=main].tools.deny`
+  - `main` identity unchanged
+  - `jobs.json` unchanged:
+    - `enabled_total=13`
+    - `enabled_on_main=0`
+    - `enabled_implicit=0`
+  - `route-command.enabled=false` unchanged
+  - `callback-forward.enabled=true` unchanged
+  - all 6 Telegram group overlays unchanged
+  - exact `main.tools.deny` value confirmed
+  - structural compare against backup matched outside `main.tools`
+  - exact gateway-side runtime resolver proof was not re-run in current safe operator context
+- Employee capabilities preserved:
+  - `browser`
+  - `web_search`
+  - `web_fetch`
+  - `image`
+  - `group:runtime` and `group:fs` were not touched
+
 ## 2. Docs-only resolved
 
 ### Canon aligned with audited live drift
@@ -505,13 +556,12 @@
 - Риск:
   - wrong hardening can kill Boris employee capabilities
   - wrong separation can mix business work, owner policy, business memory, session memory and system core
-  - stronger per-agent hardening of `main` is now unblocked by cron ownership, but still needs its own approved wave and must not be mixed with owner-policy / business-memory separation
+  - even after successful per-agent hardening of `main`, the remaining architecture waves still must not be mixed with owner-policy / business-memory separation
 - Source of truth: `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md`.
 - Минимальное исправление:
   - no direct live fix in this backlog item
   - preserve as approve-only architecture wave stack
 - Exact next waves:
-  - stronger per-agent hardening of `main`
   - `owner policy layer`
   - `business memory writer`
   - `employee workspace / safe business file tooling`
