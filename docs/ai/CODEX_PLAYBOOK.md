@@ -7,6 +7,7 @@
 - docs/ai/BORIS_DETAIL_SCHEMA_CHECKLIST_v2.md
 - docs/ai/CHANGE_WINDOWS.md
 - docs/ai/CHANGE_RUNBOOK.md
+- docs/ai/DEFAULT_APPROVALS.md
 - docs/ai/SOURCE_OF_TRUTH.md
 - /Users/timuraripov/Desktop/BS24-MASTER-PLAN-v2.0.md
 
@@ -20,21 +21,28 @@
   - trigger writers
   - safe apply path
 - Не править runtime-файл напрямую, если его перезапишет writer/enforcer.
-- Для согласованных operational задач можно использовать уже существующие server-side `tokens / API keys / cookies / env secrets / existing secret-store values`, если без этого нельзя выполнить `pre-check`, `apply` или `post-check`.
-- Это разрешение касается только использования, а не управления секретами.
-- Не выводить секреты в ответе и не печатать их в `stdout/stderr` без необходимости.
-- Не сохранять секреты в repo, docs, changelog, temp files или shell history намеренно.
-- Не менять существующие секреты, не создавать новые и не просить пользователя вручную вставлять секрет в чат, если его можно безопасно использовать из existing server-side source.
-- Если секрет нельзя безопасно использовать без раскрытия значения, остановиться и сообщить об этом.
+- Default approvals canon: `docs/ai/DEFAULT_APPROVALS.md`.
+- По умолчанию разрешено:
+  - read-only inspection в repo и на согласованных серверах;
+  - read-only SSH и `pre-check` на согласованных хостах;
+  - in-place использование existing server-side secrets, если без этого нельзя выполнить `pre-check`, `apply` или `post-check`;
+  - backup перед apply и file-level rollback из только что созданного backup при провале `post-check`;
+  - docs-only updates, docs-only commits и docs-only push;
+  - узкий apply только в явно названном scope (`one file | one field | one job | one service contour`) и только по схеме `pre-check -> backup -> minimal apply -> post-check -> rollback on fail`.
 - Не трогать без explicit approval:
+  - restart / reload
   - workflows active flags
   - model routing live files
+  - live jobs.json
+  - routing
   - bridge / gateway / auth
   - prompt/memory live layout
   - pipeline placement
   - monitoring / self-healing
   - rotate / revoke / create / delete secrets
+  - broad live refactor
   - destructive actions
+  - anything outside agreed scope
 - Не редактировать live jobs.json руками.
 - Для server-side skill сначала найти точный live SKILL.md и связанные scripts.
 - Для cron сначала понять: это cron или heartbeat.

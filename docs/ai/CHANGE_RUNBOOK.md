@@ -12,6 +12,20 @@ Before editing any live config, first identify:
 
 If a writer/enforcer exists, do not patch runtime directly unless the change plan explicitly covers the writer layer too.
 
+## Default approvals layer
+Canonical source: `docs/ai/DEFAULT_APPROVALS.md`.
+
+By default allowed:
+- read-only inspection в repo и на согласованных серверах;
+- read-only SSH и `pre-check` на согласованных хостах;
+- in-place использование existing server-side secrets, если без этого нельзя выполнить `pre-check`, `apply` или `post-check`;
+- backup перед apply;
+- file-level rollback из только что созданного backup, если `post-check` не проходит;
+- точечный apply только в явно названном scope (`one file | one field | one job | one service contour`) и только по схеме `pre-check -> backup -> minimal apply -> post-check -> rollback on fail`.
+
+Docs-only updates, docs-only commits и docs-only push разрешены по умолчанию и не требуют отдельного live apply runbook.
+Более узкий task-specific scope и более строгие policy-слои имеют приоритет над default approvals.
+
 ## Обязательный порядок
 
 ### 1. Определи слой
@@ -60,6 +74,7 @@ If a writer/enforcer exists, do not patch runtime directly unless the change pla
 Менять только то, что входит в согласованный scope.
 Не расширять задачу на ходу.
 Не делать “попутные улучшения”.
+Если нет отдельного approved expansion, live apply держать в рамках `one file | one field | one job | one service contour`.
 Если контур живёт через layered sync, менять master-слой.
 Если apply нужен именно в runtime, сначала выбрать только один допустимый путь:
 - обновить master;
@@ -103,6 +118,7 @@ Rollback делать сразу, не откладывать.
 
 ## Что запрещено
 Без explicit approval нельзя:
+- restart / reload;
 - auth
 - routing
 - gateway
@@ -110,11 +126,14 @@ Rollback делать сразу, не откладывать.
 - monitoring
 - workflows
 - model routing
+- live `jobs.json`
 - pipeline placement
 - prompt/memory live layout
 - restart критичных сервисов
+- broad live refactor
 - destructive actions
 - rotate/revoke/create/delete secrets/tokens/credentials
+- изменения вне согласованного scope
 - правка runtime/derived файла без writer-chain анализа и согласованного плана по enforcer layer
 
 ## Формат change result

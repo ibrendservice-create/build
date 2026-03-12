@@ -8,12 +8,13 @@
 2. `docs/ai/PROJECT_MEMORY.md`
 3. `docs/ai/SOURCE_OF_TRUTH.md`
 4. `docs/ai/CHANGE_POLICY.md`
-5. `docs/ai/VERIFICATION_MATRIX.md`
-6. `docs/ai/KNOWN_BUGS_AND_WORKAROUNDS.md`
-7. `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`
-8. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`
-9. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`
-10. `docs/ai/HANDOFF_2026-03-10.md`
+5. `docs/ai/DEFAULT_APPROVALS.md`
+6. `docs/ai/VERIFICATION_MATRIX.md`
+7. `docs/ai/KNOWN_BUGS_AND_WORKAROUNDS.md`
+8. `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`
+9. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`
+10. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`
+11. `docs/ai/HANDOFF_2026-03-10.md`
 
 Внешние audit docs:
 - `Boris-Detail-Schema.txt` использовать только если файл явно дан для аудита.
@@ -37,6 +38,10 @@
 - всегда rollback
 - обязательный post-change verification
 - не читать и не выводить секреты
+
+## Default approvals
+- Канонический default approvals слой: `docs/ai/DEFAULT_APPROVALS.md`.
+- Всё вне этого default-layer или вне более узкого task-specific scope требует явного approve.
 
 ## Existing secret use for operational tasks
 - Для согласованных operational задач можно использовать уже существующие server-side `tokens / API keys / cookies / env secrets / existing secret-store values`, если без этого нельзя выполнить `pre-check`, `apply` или `post-check`.

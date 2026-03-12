@@ -4,6 +4,7 @@
 @docs/ai/PROJECT_MEMORY.md
 @docs/ai/SOURCE_OF_TRUTH.md
 @docs/ai/CHANGE_POLICY.md
+@docs/ai/DEFAULT_APPROVALS.md
 @docs/ai/VERIFICATION_MATRIX.md
 @docs/ai/KNOWN_BUGS_AND_WORKAROUNDS.md
 @docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md
@@ -32,6 +33,7 @@
 - Всегда иметь rollback.
 - Всегда делать post-change verification.
 - Не читать и не выводить секреты.
+- Default approvals canon: `docs/ai/DEFAULT_APPROVALS.md`.
 - Не трогать auth, routing, gateway, bridge, monitoring и destructive actions без явного approve.
 - Не трогать monitoring / self-healing и workflows без явного approve.
 - Не трогать server-side truth вне repo без явного approve.
