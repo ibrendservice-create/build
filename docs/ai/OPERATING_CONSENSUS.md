@@ -36,7 +36,7 @@
 
 ## Document priority
 - `AGENTS.md` и `CLAUDE.md` это agent entry points; они должны ссылаться на один и тот же канон и не расходиться по правилам проекта.
-- Канон repo: этот файл плюс `docs/ai/PROJECT_MEMORY.md`, `docs/ai/SOURCE_OF_TRUTH.md`, `docs/ai/CHANGE_POLICY.md`, `docs/ai/VERIFICATION_MATRIX.md`, `docs/ai/KNOWN_BUGS_AND_WORKAROUNDS.md`.
+- Канон repo: этот файл плюс `docs/ai/PROJECT_MEMORY.md`, `docs/ai/SOURCE_OF_TRUTH.md`, `docs/ai/CHANGE_POLICY.md`, `docs/ai/VERIFICATION_MATRIX.md`, `docs/ai/KNOWN_BUGS_AND_WORKAROUNDS.md`, `docs/ai/SKILL_AUTHORING_POLICY.md`.
 - Dated audit docs: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCKS_5_6_7_8.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_10_MONITORING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_11_CRON_SKILLS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_12_TOOLS_PLUGINS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BORIS_CHAT_HARDENING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TG_RUNTIME_BLOCKER_CONTEXT.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_TG_HEALTH_PATH_CONTRADICTION.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md` и `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`.
 - Snapshot docs: `docs/ai/HANDOFF_2026-03-10.md` и внешний `Boris-Detail-Schema.txt`.
 - `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` = read-only audit helper по writer/enforcer chains; это не новый live master, а карта overwrite/restore контуров.
@@ -120,6 +120,7 @@ If a writer/enforcer exists, do not patch runtime directly unless the change pla
 - Live prompt/memory paths: `.openclaw/SOUL.md` отсутствует; live rules source of truth на S1 = `/data/.openclaw/workspace/memory/RULES.md`.
 - `/data/.openclaw/memory` в live используется как storage/DB path, а не как rules path.
 - `CLAUDE.md` в live не является master-источником правил; он только ссылается на `workspace/memory/RULES.md`.
+- Для attachment/file skill authoring canonical live rule layer = `RULES.md`; repo authoring canon for this contour = `docs/ai/SKILL_AUTHORING_POLICY.md`.
 - Prompt/memory drift сейчас классифицирован как docs drift, а не как подтвержденный runtime failure.
 - Live Caddyfile path = `/etc/caddy/Caddyfile`, и active server-side checks уже используют этот path.
 - `sites-enabled` на S1 сейчас regular files, не symlink, и active checks не требуют symlink-type для этих nginx files.

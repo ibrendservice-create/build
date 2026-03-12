@@ -45,6 +45,8 @@
   - anything outside agreed scope
 - Не редактировать live jobs.json руками.
 - Для server-side skill сначала найти точный live SKILL.md и связанные scripts.
+- Для server-side skill работа с `SKILL.md` и helper scripts обязательна только после чтения `docs/ai/SKILL_AUTHORING_POLICY.md`.
+- Для attachment/file skill нельзя опираться на `CLAUDE.md` как на master-слой правил; для live canonical behavior ориентир = `RULES.md`, а для repo authoring = `docs/ai/SKILL_AUTHORING_POLICY.md`.
 - Для cron сначала понять: это cron или heartbeat.
 
 ## Типы задач

@@ -80,6 +80,7 @@
 - Для live правил на S1 repo-visible source of truth = `/data/.openclaw/workspace/memory/RULES.md`, как это подтверждено в `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`.
 - `/data/.openclaw/memory` в live не является rules path; это storage/DB path.
 - `CLAUDE.md` не является master-источником правил; он выступает как operational context file и указывает на `workspace/memory/RULES.md`.
+- Для attachment/file skill authoring canonical live rule layer тоже должен жить в `RULES.md`, а не в `CLAUDE.md` или отдельных ad hoc skill snippets.
 - Отсутствие `.openclaw/SOUL.md` на дату аудита зафиксировано как docs drift, а не как доказанный runtime failure.
 - Любые server-side изменения prompt/memory layout или loader-paths требуют explicit approve.
 
@@ -130,6 +131,8 @@
   - `22` real skills
   - service dirs `scripts`, `snippets`
 - Old snapshot name `parse-attachment` is obsolete; live skill entrypoint is `parse-file`.
+- Repo canon for future server-side skill authoring = `docs/ai/SKILL_AUTHORING_POLICY.md`.
+- New skill examples must not normalize raw `/data/.openclaw/media/inbound/*` working paths; inbound attachments require staging first into `/data/.openclaw/workspace/downloads/inbound/*`.
 - Critical live entrypoints confirmed present:
   - `email-handler`
   - `okdesk`
