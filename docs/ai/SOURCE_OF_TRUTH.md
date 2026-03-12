@@ -15,7 +15,7 @@
 - Эти документы нужны для аудита и поиска пробелов, но не заменяют live master.
 
 ## Repo-visible audited live facts
-- Для live-фактов, подтвержденных read-only аудитами `2026-03-10` и `2026-03-11`, repo-visible source of truth = `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCKS_5_6_7_8.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_10_MONITORING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_11_CRON_SKILLS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_12_TOOLS_PLUGINS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BORIS_CHAT_HARDENING.md` и `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`.
+- Для live-фактов, подтвержденных read-only аудитами `2026-03-10`, `2026-03-11` и `2026-03-12`, repo-visible source of truth = `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCKS_5_6_7_8.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_10_MONITORING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_11_CRON_SKILLS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_12_TOOLS_PLUGINS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BORIS_CHAT_HARDENING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TG_RUNTIME_BLOCKER_CONTEXT.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_TG_HEALTH_PATH_CONTRADICTION.md` и `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`.
 - Это относится к:
   - live placement/status `okdesk-pipeline`;
   - live model routing для internal cron и External Boris;
@@ -55,6 +55,10 @@
 - Canonical public `bridge-ha` probe = `https://n8n.brendservice24.ru/bridge-ha/health`.
 - `ops.brendservice24.ru/bridge-ha/*` не считать canonical route: `ops` domain активен, но path `/bridge-ha/*` на нём в live ingress не поддерживается.
 - Public `bridge-ha` probe считать valid не только по `HTTP 200`, но и по `application/json` / JSON body.
+- For Telegram inbound runtime on `S1`, authoritative health proof = `openclaw channels status --json --probe` only in successful authenticated gateway context and without config-only fallback.
+- `openclaw gateway call health --json` must not be used as Telegram runtime proof on `S1`: this path builds a coarse cached summary, and Telegram runtime fields there are not runtime truth.
+- If `channels status --probe` prints config-only fallback, treat it as config visibility only, not as runtime evidence.
+- CLI auth/device-signature issues can force that fallback and create false incident diagnosis.
 - Если владелец захочет supported `/bridge-ha/*` route и на `ops` domain, это owner decision + approve-only ingress change.
 - Для текущего состояния это docs drift / ingress ambiguity, а не подтверждённый live outage.
 
@@ -156,6 +160,8 @@
 
 ## Boris chat-admin hardening specifics
 - Repo-visible source of truth for Boris chat self-modification analysis on `2026-03-11` = `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BORIS_CHAT_HARDENING.md`.
+- Repo-visible source of truth for the `/route` pause and Telegram runtime blocker context on `2026-03-11` = `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TG_RUNTIME_BLOCKER_CONTEXT.md`.
+- Repo-visible source of truth for the Telegram health-path correction on `2026-03-12` = `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_TG_HEALTH_PATH_CONTRADICTION.md`.
 - For official chat-admin controls on `S1`:
   - `commands.config`
   - `commands.restart`
@@ -163,6 +169,16 @@
   current live canonical source is internal `openclaw.json`, not a separate declarative master confirmed in repo.
 - `/var/lib/apps-data/boris-doctor/backups/telegram-config.json` is not the master for that Wave 0 contour; it is a periodic restore snapshot/cache refreshed by validator logic.
 - Custom `/route` is a separate plugin contour that writes `openclaw.json` from chat and must not be conflated with official `/config` or `configWrites`.
+- Read-only follow-up on `2026-03-11` did not confirm `/route` as an active live Telegram contour because the authenticated gateway snapshot showed Telegram `configured=true`, but `running=false`.
+- Follow-up read-only audit on `2026-03-12` then reclassified that contradiction as telemetry issue, not confirmed live outage:
+  - `openclaw gateway call health --json` is not authoritative for Telegram inbound runtime on `S1`
+  - exact authoritative path = `openclaw channels status --json --probe`, only in successful authenticated gateway context and without config-only fallback
+  - config-only fallback and CLI auth/device-signature failures can create false diagnosis
+- `callback-forward` remains a separate internal hook contour and must not be used as proof that `/route` is active.
+- Current planning classification:
+  - Telegram restore contour closed as not-needed
+  - next active hardening contour = `/route` closure
+  - use gateway-health data only as coarse gateway telemetry, not as Telegram inbound runtime proof
 - HQ `requireMention` is only a chatter gate; it must not be treated as a self-protection control against config or runtime mutation.
 
 ## Live truth вне repo

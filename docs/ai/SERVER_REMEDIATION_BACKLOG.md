@@ -347,6 +347,20 @@
   - file layout и safe runbook задокументированы отдельно;
   - любые periodic/background variants остаются owner-decision + approve-only.
 
+### Telegram runtime health-path contradiction on S1 corrected in docs
+- Проблема: old planning treated `openclaw gateway call health --json` as proof that Telegram inbound runtime was down on `S1`, which created a false next-fix contour.
+- Риск: false incident diagnosis and wrong next-step selection inside Boris chat hardening.
+- Source of truth: `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_TG_HEALTH_PATH_CONTRADICTION.md`.
+- Минимальное исправление:
+  - classify the contradiction as telemetry issue, not confirmed live outage
+  - set authoritative Telegram inbound runtime proof on `S1` to `openclaw channels status --json --probe`
+  - require successful authenticated gateway context and no config-only fallback
+  - forbid using `openclaw gateway call health --json` as Telegram runtime proof on `S1`
+- Rollback: откатить docs-only correction, если более поздний live audit покажет иную reality.
+- Post-check:
+  - backlog no longer keeps a separate Telegram restore apply contour
+  - next Boris hardening contour in docs = `/route` closure
+
 ## 3. Next server-side fixes by priority
 
 ### HQ Telegram requireMention stabilization on S1
@@ -404,18 +418,24 @@
 
 ## 4. Approve-only fixes
 
-### Separate `/route` persistent chat-routing closure on S1
-- Проблема: custom `route-command` остаётся отдельным persistent chat-write contour и пишет `openclaw.json` из чата.
-- Риск: even after successful Wave 0 official chat-admin hard stop persistent chat-admin не будет закрыт полностью, потому что `/route` живёт вне official `/config` surface.
+### Separate `/route` closure on S1 is the next active hardening contour
+- Проблема: custom `route-command` остаётся отдельным persistent chat-write contour и пишет `openclaw.json` из чата вне official Wave 0 controls.
+- Риск: even after successful official chat-admin hard stop persistent chat-write contour remains open until `/route` is closed separately.
 - Source of truth:
+  - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_TG_HEALTH_PATH_CONTRADICTION.md`
+  - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TG_RUNTIME_BLOCKER_CONTEXT.md`
   - `docs/ai/SERVER_CHANGELOG_2026-03-11_boris_wave0_chat_hardstop.md`
   - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BORIS_CHAT_HARDENING.md`
   - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_12_TOOLS_PLUGINS.md`
-- Минимальное исправление: делать только отдельным approved wave с plugin/control-plane review; не смешивать с Wave 0, потому что рядом живут plugin loading, `callback-forward` и related hooks.
-- Rollback: file-level/plugin-level restore exact contour from timestamped backups.
+- Минимальное исправление: делать только отдельным approved hardening wave with plugin/control-plane review; old Telegram restore contour is closed as telemetry-only and no longer blocks this wave.
+- Guardrails:
+  - do not use `openclaw gateway call health --json` as Telegram runtime proof on `S1`
+  - if Telegram runtime proof is needed before or after `/route` work, use `openclaw channels status --json --probe` only in successful authenticated gateway context and without config-only fallback
+- Rollback: file-level/plugin-level restore exact `/route` contour from timestamped backups.
 - Post-check:
   - persistent routing write from chat is gone
   - `callback-forward` and neighboring control-plane behavior stay intact
+  - no Telegram runtime verdict is taken from gateway-health-only telemetry
 
 ### pg-tunnel-s2 contingency contour on S1
 - Проблема: на `S1` остаётся `pg-tunnel-s2.service`, но weekly narrow audit подтвердил, что current Boris PG mode = `local`, current backend = `boris-emails-pg-1`, а tunnel конфликтует с local PG по `172.18.0.1:15432`.
