@@ -18,6 +18,7 @@
 - `docs/ai/SERVER_CHANGELOG_2026-03-12_boris_group_selfmod_deny_and_route_closure.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-12_cron_split_off_main.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-12_main_per_agent_hardening_wave.md`
+- `docs/ai/SERVER_CHANGELOG_2026-03-12_boris_inbound_staging_wave.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-11_HQ_REQUIRE_MENTION_FAILED.md`
 - `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`
 
@@ -370,6 +371,41 @@
   - `image`
   - `group:runtime` and `group:fs` were not touched
 
+### S1 Boris inbound staging wave applied
+- Проблема: live business flows still used raw `.openclaw/media/inbound/*`, so `main.tools.fs.workspaceOnly = true` was still blocked.
+- Риск: direct `workspaceOnly=true` apply would break current business attachment flows on `main`.
+- Source of truth: `docs/ai/SERVER_CHANGELOG_2026-03-12_boris_inbound_staging_wave.md`.
+- Минимальное исправление:
+  - created only `/var/lib/apps-data/openclaw/data/.openclaw/workspace/downloads/inbound/`
+  - added only `/var/lib/apps-data/openclaw/data/scripts/stage-inbound-media.py`
+  - added one minimal instruction layer only inside `File Extractor` block in `/var/lib/apps-data/openclaw/data/CLAUDE.md`
+- Что не менялось:
+  - `openclaw.json`
+  - `main.tools.fs.workspaceOnly`
+  - `group:runtime`
+  - `group:fs`
+  - owner policy
+  - business memory
+  - bridge-model routing
+  - digests
+  - `callback-forward`
+  - monitoring
+  - plugins / hooks
+  - `jobs.json`
+  - `model-strategy.json`
+- Rollback: не потребовался; backup = `/root/boris-inbound-staging-20260312T124503Z`.
+- Post-check:
+  - staging dir created correctly
+  - helper exists and `py_compile` passed
+  - helper rejects:
+    - non-inbound paths
+    - path traversal
+    - symlinks
+  - helper returns only staged workspace path
+  - staged files land only under `/var/lib/apps-data/openclaw/data/.openclaw/workspace/downloads/inbound/`
+  - minimal instruction layer changed only `File Extractor` block in `CLAUDE.md`
+  - no drift in routing / owner policy / business memory / digests / callback-forward / monitoring
+
 ## 2. Docs-only resolved
 
 ### Canon aligned with audited live drift
@@ -556,15 +592,16 @@
 - Риск:
   - wrong hardening can kill Boris employee capabilities
   - wrong separation can mix business work, owner policy, business memory, session memory and system core
-  - even after successful per-agent hardening of `main`, the remaining architecture waves still must not be mixed with owner-policy / business-memory separation
+  - even after successful per-agent hardening of `main` and successful inbound staging `B1`, the remaining architecture waves still must not be mixed with owner-policy / business-memory separation
 - Source of truth: `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md`.
 - Минимальное исправление:
   - no direct live fix in this backlog item
   - preserve as approve-only architecture wave stack
 - Exact next waves:
+  - collect live evidence that Boris now stages inbound attachments before file-tool access
+  - `B2: agents.list[id=main].tools.fs.workspaceOnly = true`
   - `owner policy layer`
   - `business memory writer`
-  - `employee workspace / safe business file tooling`
   - self-modification deny without killing employee capabilities
   - later model exposure narrowing
 - Guardrails:

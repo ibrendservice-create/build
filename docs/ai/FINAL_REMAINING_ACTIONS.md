@@ -274,6 +274,47 @@
   - `image`
   - `group:runtime` и `group:fs` intentionally were not touched
 
+### Boris inbound staging wave on S1
+- Что это: narrow live apply for inbound attachment staging on `S1`, needed to unblock later `main.tools.fs.workspaceOnly = true` without breaking current business attachment flows.
+- Почему не осталось: apply уже выполнен успешно и убрал exact inbound-media blocker without touching owner policy / business memory / bridge-model routing / digests / callback-forward / monitoring.
+- Source of truth:
+  - `docs/ai/SERVER_CHANGELOG_2026-03-12_boris_inbound_staging_wave.md`
+  - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md`
+- Что изменилось:
+  - created only:
+    - `/var/lib/apps-data/openclaw/data/.openclaw/workspace/downloads/inbound/`
+  - added only:
+    - `/var/lib/apps-data/openclaw/data/scripts/stage-inbound-media.py`
+  - added one minimal instruction layer only inside `File Extractor` block in:
+    - `/var/lib/apps-data/openclaw/data/CLAUDE.md`
+- Что не менялось:
+  - `openclaw.json`
+  - `main.tools.fs.workspaceOnly`
+  - `group:runtime`
+  - `group:fs`
+  - owner policy
+  - business memory
+  - bridge-model routing
+  - digests
+  - `callback-forward`
+  - monitoring
+  - plugins / hooks
+  - `jobs.json`
+  - `model-strategy.json`
+- Post-check:
+  - staging dir created correctly
+  - helper exists and `py_compile` passed
+  - helper rejects:
+    - non-inbound paths
+    - path traversal
+    - symlinks
+  - helper returns only staged workspace path
+  - staged files land only under:
+    - `/var/lib/apps-data/openclaw/data/.openclaw/workspace/downloads/inbound/`
+  - minimal instruction layer changed only `File Extractor` block in `CLAUDE.md`
+  - no drift in routing / owner policy / business memory / digests / callback-forward / monitoring
+- Rollback: не потребовался; backup лежит в `/root/boris-inbound-staging-20260312T124503Z`.
+
 ## 2. Docs-only resolved
 
 ### Canon aligned with audited live drift
@@ -455,13 +496,15 @@
   - `/route` closure and group-scoped self-mod deny are already applied
   - `cron split off main` is already completed successfully
   - stronger per-agent hardening of `main` is already completed successfully
+  - inbound attachment staging `B1` is already completed successfully
   - shared trust boundary still remains
   - owner policy and business memory are still not separated from system/core planning
 - Source of truth: `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md`.
 - Exact next architecture waves to preserve:
+  - collect live evidence that Boris now stages inbound attachments before file-tool access
+  - `B2: agents.list[id=main].tools.fs.workspaceOnly = true`
   - `owner policy layer`
   - `business memory writer`
-  - `employee workspace / safe business file tooling`
   - self-modification deny without killing employee capabilities
   - later model exposure narrowing for shared chats
 - Guardrails:
