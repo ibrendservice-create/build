@@ -29,6 +29,11 @@
   - S1 -> S2 alias drift vs network health.
 - Эти audit docs не заменяют live master после даты аудита; для более нового состояния нужен новый server audit.
 
+## Repo-visible architecture/security analysis docs
+- `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md` = docs-only architecture/security analysis for Boris as a full employee agent with self-modification denied and explicit owner-policy/business-memory separation.
+- Этот документ использовать для target-state planning и backlog sequencing.
+- Он не заменяет live master и не является доказательством нового live apply после `2026-03-12`.
+
 ## okdesk-pipeline specifics
 - Для `okdesk-pipeline` canonical placement на дату аудита = `S2`.
 - Repo-visible live runtime source of truth по этому контуру = `S2 systemd unit + S2 cron calls + S2 listener :3200`, как это подтверждено в `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`.
@@ -162,6 +167,7 @@
 - Repo-visible source of truth for Boris chat self-modification analysis on `2026-03-11` = `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BORIS_CHAT_HARDENING.md`.
 - Repo-visible source of truth for the `/route` pause and Telegram runtime blocker context on `2026-03-11` = `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TG_RUNTIME_BLOCKER_CONTEXT.md`.
 - Repo-visible source of truth for the Telegram health-path correction on `2026-03-12` = `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_TG_HEALTH_PATH_CONTRADICTION.md`.
+- Repo-visible source of truth for Boris employee-architecture target state on `2026-03-12` = `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md`.
 - For official chat-admin controls on `S1`:
   - `commands.config`
   - `commands.restart`
@@ -179,6 +185,11 @@
   - Telegram restore contour closed as not-needed
   - next active hardening contour = `/route` closure
   - use gateway-health data only as coarse gateway telemetry, not as Telegram inbound runtime proof
+- Broader target architecture after Wave 0:
+  - preserve Boris employee capabilities
+  - deny self-modification and self-admin
+  - separate owner policy from business memory and system core
+  - require `cron split off main` before stronger per-agent hardening of `main`
 - HQ `requireMention` is only a chatter gate; it must not be treated as a self-protection control against config or runtime mutation.
 
 ## Live truth вне repo

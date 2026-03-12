@@ -271,6 +271,25 @@
   - canonical docs explicitly forbid using `openclaw gateway call health --json` as Telegram runtime proof on `S1`
   - next active hardening contour in docs = `/route` closure
 
+### Boris employee architecture/security target state documented
+- Что это: docs-only фиксация architecture/security analysis по Boris как full employee agent with self-modification denied and with explicit owner-policy/business-memory separation.
+- Source of truth: `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md`.
+- Почему не осталось как docs gap:
+  - в каноне теперь явно зафиксировано, что Boris не простой чат-бот, а full employee agent
+  - employee capabilities нужно сохранять, а не убивать blanket-deny
+  - self-admin / self-modification surfaces нужно deny-ить отдельно от business work
+  - target architecture = 4 слоя:
+    - system core
+    - owner policy
+    - business memory
+    - session/task memory
+- Почему это docs-only:
+  - документ фиксирует accepted architecture/security target state
+  - он не делает live apply и не заменяет отдельные approved hardening waves
+- Post-check:
+  - канон и backlog ссылаются на один dated addendum
+  - key decisions по owner-policy layer, business-memory separation и `cron split off main` сохранены в repo, а не только в чате
+
 ## 3. Decisions accepted, no apply needed
 
 ### Workflow states accepted as current norm
@@ -330,6 +349,32 @@
   - persistent routing write from chat is gone
   - `callback-forward` and neighboring control-plane behavior stay intact
   - no runtime verdict is taken from gateway-health-only telemetry
+
+### Boris employee architecture separation program on S1
+- Что это: approve-only architecture wave stack, needed to keep Boris as a full employee agent while removing self-modification and mixed-trust control-plane behavior.
+- Почему осталось:
+  - Wave 0 already closed official chat-admin surfaces
+  - shared trust boundary still remains
+  - owner policy and business memory are still not separated from system/core planning
+  - stronger per-agent hardening of `main` is blocked while `11` enabled jobs still use `agentId=main`
+- Source of truth: `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md`.
+- Exact next architecture waves to preserve:
+  - `cron split off main`
+  - `owner policy layer`
+  - `business memory writer`
+  - `employee workspace / safe business file tooling`
+  - self-modification deny without killing employee capabilities
+  - later model exposure narrowing for shared chats
+- Guardrails:
+  - do not blanket-deny browser/web/file business work
+  - do not mix business work with system-core mutation
+  - do not move owner authority into normal business memory
+  - do not harden `main` broadly before `cron split off main`
+- Rollback:
+  - not applicable until a specific approved server-side wave exists
+- Post-check:
+  - backlog preserves wave order
+  - Boris employee capability boundary and self-mod deny boundary stay explicit in docs
 
 ### HQ Telegram requireMention stabilization on S1
 - Что это: узкий live fix для Штаба в Telegram group/chat `-1002799098412`.

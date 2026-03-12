@@ -437,6 +437,33 @@
   - `callback-forward` and neighboring control-plane behavior stay intact
   - no Telegram runtime verdict is taken from gateway-health-only telemetry
 
+### Boris employee architecture hardening program on S1
+- Проблема: Boris must remain a full employee agent, but current shared-trust contour still mixes employee capabilities with self-modification / self-admin / owner-policy and system-core boundaries.
+- Риск:
+  - wrong hardening can kill Boris employee capabilities
+  - wrong separation can mix business work, owner policy, business memory, session memory and system core
+  - stronger per-agent hardening of `main` before cron split can hit `11` enabled `main` jobs
+- Source of truth: `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md`.
+- Минимальное исправление:
+  - no direct live fix in this backlog item
+  - preserve as approve-only architecture wave stack
+- Exact next waves:
+  - `cron split off main`
+  - `owner policy layer`
+  - `business memory writer`
+  - `employee workspace / safe business file tooling`
+  - self-modification deny without killing employee capabilities
+  - later model exposure narrowing
+- Guardrails:
+  - no blanket-deny of browser/web/file business work
+  - no direct rewrite of system core for owner-policy persistence
+  - no mixing of business memory with system core
+- Rollback:
+  - not applicable until a specific approved wave is applied
+- Post-check:
+  - backlog keeps the architecture wave order explicit
+  - docs preserve the employee-capability boundary separately from self-admin denial
+
 ### pg-tunnel-s2 contingency contour on S1
 - Проблема: на `S1` остаётся `pg-tunnel-s2.service`, но weekly narrow audit подтвердил, что current Boris PG mode = `local`, current backend = `boris-emails-pg-1`, а tunnel конфликтует с local PG по `172.18.0.1:15432`.
 - Риск: operational noise, ложная диагностика PostgreSQL contour и accidental fix не того data plane.

@@ -7,7 +7,7 @@
 - Только repo docs и project instruction files.
 - Runtime, server-side truth, live workflows и secrets находятся вне этого repo.
 - `docs/ai/HANDOFF_2026-03-10.md` и внешний `Boris-Detail-Schema.txt` используются для аудита, а не как live master.
-- `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCKS_5_6_7_8.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_10_MONITORING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_11_CRON_SKILLS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_12_TOOLS_PLUGINS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BORIS_CHAT_HARDENING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TG_RUNTIME_BLOCKER_CONTEXT.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_TG_HEALTH_PATH_CONTRADICTION.md` и `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md` это dated audit docs: они фиксируют проверенные live-факты на дату аудита, но не заменяют live master после этой даты.
+- `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCKS_5_6_7_8.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_10_MONITORING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_11_CRON_SKILLS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_12_TOOLS_PLUGINS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BORIS_CHAT_HARDENING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TG_RUNTIME_BLOCKER_CONTEXT.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_TG_HEALTH_PATH_CONTRADICTION.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md` и `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md` это dated audit docs: они фиксируют проверенные live-факты и accepted architecture/security analysis на дату документа, но не заменяют live master после этой даты.
 
 ## Canonical read order
 1. `docs/ai/OPERATING_CONSENSUS.md`
@@ -29,14 +29,15 @@
 17. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BORIS_CHAT_HARDENING.md`
 18. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TG_RUNTIME_BLOCKER_CONTEXT.md`
 19. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_TG_HEALTH_PATH_CONTRADICTION.md`
-20. `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`
-21. `docs/ai/HANDOFF_2026-03-10.md`
-22. `Boris-Detail-Schema.txt` только если файл явно дан для аудита; сырой файл не копировать в repo.
+20. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md`
+21. `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`
+22. `docs/ai/HANDOFF_2026-03-10.md`
+23. `Boris-Detail-Schema.txt` только если файл явно дан для аудита; сырой файл не копировать в repo.
 
 ## Document priority
 - `AGENTS.md` и `CLAUDE.md` это agent entry points; они должны ссылаться на один и тот же канон и не расходиться по правилам проекта.
 - Канон repo: этот файл плюс `docs/ai/PROJECT_MEMORY.md`, `docs/ai/SOURCE_OF_TRUTH.md`, `docs/ai/CHANGE_POLICY.md`, `docs/ai/VERIFICATION_MATRIX.md`, `docs/ai/KNOWN_BUGS_AND_WORKAROUNDS.md`.
-- Dated audit docs: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCKS_5_6_7_8.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_10_MONITORING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_11_CRON_SKILLS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_12_TOOLS_PLUGINS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BORIS_CHAT_HARDENING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TG_RUNTIME_BLOCKER_CONTEXT.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_TG_HEALTH_PATH_CONTRADICTION.md` и `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`.
+- Dated audit docs: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCKS_5_6_7_8.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_10_MONITORING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_11_CRON_SKILLS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_12_TOOLS_PLUGINS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BORIS_CHAT_HARDENING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TG_RUNTIME_BLOCKER_CONTEXT.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_TG_HEALTH_PATH_CONTRADICTION.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md` и `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`.
 - Snapshot docs: `docs/ai/HANDOFF_2026-03-10.md` и внешний `Boris-Detail-Schema.txt`.
 - `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` = read-only audit helper по writer/enforcer chains; это не новый live master, а карта overwrite/restore контуров.
 - Live server-side truth проверяется только вне repo.
@@ -198,6 +199,14 @@ If a writer/enforcer exists, do not patch runtime directly unless the change pla
   - CLI auth/device-signature issues can create false incident diagnosis
   - Telegram restore contour closed as not-needed
   - next active hardening contour = `/route` closure
+- Boris employee architecture/security analysis on `2026-03-12`:
+  - Boris must be treated as a full employee agent, not a simple chat bot
+  - employee capabilities must be preserved while self-modification and self-admin are denied
+  - target architecture is a 4-layer split: system core, owner policy, business memory, session/task memory
+  - owner authority must persist through a separate owner-policy layer, not by rewriting system core
+  - business memory must be separated from system core
+  - `cron split off main` is required before stronger per-agent hardening of `main`
+  - shared trust boundary remains until business workspace and control-plane separation are completed
 - `scripts/` and `snippets/` under skills workspace are service dirs, not real skills.
 - Old snapshot name `parse-attachment` is obsolete; live skill entrypoint is `parse-file`.
 - `jobs.json` is schedule/config layer, not runtime truth by itself.
