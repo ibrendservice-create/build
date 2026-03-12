@@ -52,6 +52,13 @@
   - откатывать narrow runtime apply только потому, что backup не обновился внутри короткого окна;
   - редактировать `telegram-config.json` руками как будто это master;
   - объявлять contour fully stable до validator convergence check.
+- exact HQ closeout after correct delayed post-check:
+  - read-only post-check executed `2026-03-12 15:40:54 UTC`
+  - runtime `requireMention=true` remained confirmed
+  - `telegram-config.json` converged to `requireMention=true`
+  - adjacent fields remained unchanged in the checked scope
+  - rollback not required
+  - exact HQ contour status = `resolved / converged`
 - статус: mitigated.
 
 ### okdesk-pipeline deployment truth mismatch

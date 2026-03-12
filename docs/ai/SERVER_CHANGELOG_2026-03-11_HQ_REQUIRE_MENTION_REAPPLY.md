@@ -88,6 +88,23 @@ Immediate runtime post-check passed:
 - `2026-03-12 04:02:37 UTC` to `2026-03-12 04:04:37 UTC`
 - `2026-03-12 07:02:37 MSK` to `2026-03-12 07:04:37 MSK`
 
+## Delayed post-check after validator window
+
+Read-only delayed closeout check executed after the eligible validator window:
+
+- check time:
+  - `2026-03-12 15:40:54 UTC`
+- runtime `openclaw.json` still confirms:
+  - `.channels.telegram.groups["-1002799098412"].requireMention = true`
+- periodic restore snapshot `telegram-config.json` converged to:
+  - `.groups["-1002799098412"].requireMention = true`
+- adjacent fields remained unchanged in the checked scope:
+  - `groupPolicy = open`
+  - `replyToMode = null`
+  - topic overrides absent
+  - runtime and backup matched on the checked adjacent field set for this group
+- rollback remained not required
+
 ## Что считать success condition
 
 - Immediate success:
@@ -112,7 +129,12 @@ Immediate runtime post-check passed:
 ## Текущий итог
 
 - `runtime success`
-- `pending validator convergence`
+- `validator convergence confirmed`
 - Current live canonical runtime state after reapply:
   - `.channels.telegram.groups["-1002799098412"].requireMention = true`
-- Final stability verdict for the contour should be made only after the next eligible validator refresh window.
+- Current converged backup state after delayed read-only post-check:
+  - `.groups["-1002799098412"].requireMention = true`
+- Adjacent fields remained unchanged in the checked scope.
+- `Rollback required` = `no`
+- Final contour verdict:
+  - `resolved / converged`

@@ -112,6 +112,27 @@
   - `payload_job_drift=[]`
   - `boris-health-check.py` использует boolean helper-resolution check
 
+### HQ Telegram requireMention contour converged on S1
+- Что это: узкий live fix для Штаба в Telegram group/chat `-1002799098412`.
+- Почему не осталось: delayed read-only post-check после validator window подтвердил, что runtime `requireMention=true` сохранился, `telegram-config.json` converged to `requireMention=true`, adjacent fields в checked scope не изменились, rollback не потребовался.
+- Source of truth:
+  - `docs/ai/SERVER_CHANGELOG_2026-03-11_HQ_REQUIRE_MENTION_REAPPLY.md`
+  - `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md`
+- Что не менялось:
+  - `replyToMode`
+  - topic overrides
+  - `workspace-validator.py`
+  - routing
+  - workflows
+  - bridge
+  - monitoring
+- Post-check:
+  - read-only closeout executed `2026-03-12 15:40:54 UTC`
+  - runtime `.channels.telegram.groups["-1002799098412"].requireMention = true`
+  - backup `.groups["-1002799098412"].requireMention = true`
+  - adjacent fields unchanged in the checked scope
+- Rollback: не потребовался.
+
 ### Wave 0 Boris chat self-modification hard stop on S1
 - Что это: narrow live hard stop по official Boris chat-admin surfaces на `S1`.
 - Почему не осталось: apply уже выполнен успешно и закрыл exact official chat-admin keys:
@@ -517,33 +538,6 @@
 - Post-check:
   - backlog preserves wave order
   - Boris employee capability boundary and self-mod deny boundary stay explicit in docs
-
-### HQ Telegram requireMention stabilization on S1
-- Что это: узкий live fix для Штаба в Telegram group/chat `-1002799098412`.
-- Current state: reapply от `2026-03-11` уже выполнен; live canonical runtime field now = `.channels.telegram.groups["-1002799098412"].requireMention = true`.
-- Что осталось: не новый apply, а только delayed validator-convergence verification для `/var/lib/apps-data/boris-doctor/backups/telegram-config.json`.
-- Source of truth:
-  - `docs/ai/SERVER_CHANGELOG_2026-03-11_HQ_REQUIRE_MENTION_REAPPLY.md`
-  - `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md`
-- Что не менялось этим apply:
-  - `mentionPatterns`
-  - `replyToMode`
-  - topic overrides
-  - `workspace-validator.py`
-  - routing
-  - workflows
-  - bridge
-  - monitoring
-- Exact next validator refresh window:
-  - `2026-03-12 04:02:37 UTC` to `2026-03-12 04:04:37 UTC`
-  - `2026-03-12 07:02:37 MSK` to `2026-03-12 07:04:37 MSK`
-- Important:
-  - `telegram-config.json` still showing `false` before that window is expected and must not be treated as an error
-- Stable success condition:
-  - runtime field stays `true`
-  - validator backup converges to `requireMention=true` on the next eligible cycle
-  - `mentionPatterns`, `replyToMode`, topic overrides remain unchanged
-- Rollback: не потребовался на immediate post-check; future rollback нужен только если later validator convergence goes wrong
 
 ### Tender specialist skill hygiene on S1
 - Что это: узкий server-side patch для Boris skill `tender-specialist` на `S1`.

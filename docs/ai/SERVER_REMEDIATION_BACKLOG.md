@@ -14,6 +14,7 @@
 - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BORIS_CHAT_HARDENING.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-11_bridge2_subscription_fix.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-11_tg_helper_token_hardening.md`
+- `docs/ai/SERVER_CHANGELOG_2026-03-11_HQ_REQUIRE_MENTION_REAPPLY.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-11_boris_wave0_chat_hardstop.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-12_boris_group_selfmod_deny_and_route_closure.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-12_cron_split_off_main.md`
@@ -200,6 +201,29 @@
   - `payload_job_drift=[]`
   - `py_compile` passed for both files
   - `boris-health-check.py` now uses helper-resolution boolean check
+
+### S1 HQ Telegram requireMention contour converged
+- Проблема: first attempt от `2026-03-11` был откатан слишком рано из-за короткого delayed backup check window относительно real validator refresh contour.
+- Риск: historical operational risk был в ложном rollback по stale backup snapshot, а не в самом one-field runtime apply.
+- Source of truth: `docs/ai/SERVER_CHANGELOG_2026-03-11_HQ_REQUIRE_MENTION_REAPPLY.md`.
+- Минимальное исправление:
+  - one-field runtime reapply already changed only:
+    - `.channels.telegram.groups["-1002799098412"].requireMention: false -> true`
+- Что не менялось:
+  - `replyToMode`
+  - topic overrides
+  - `workspace-validator.py`
+  - routing
+  - workflows
+  - bridge
+  - monitoring
+- Rollback: не потребовался.
+- Post-check:
+  - delayed read-only closeout executed `2026-03-12 15:40:54 UTC`
+  - runtime `.channels.telegram.groups["-1002799098412"].requireMention = true`
+  - backup `.groups["-1002799098412"].requireMention = true`
+  - adjacent fields unchanged in the checked scope
+  - final contour status = `resolved / converged`
 
 ### S1 Boris Wave 0 chat-admin hard stop applied
 - Проблема: official Boris chat-admin surfaces на `S1` оставались live через:
@@ -531,37 +555,6 @@
   - historical next Boris hardening contour `/route` is now closed by `docs/ai/SERVER_CHANGELOG_2026-03-12_boris_group_selfmod_deny_and_route_closure.md`
 
 ## 3. Next server-side fixes by priority
-
-### HQ Telegram requireMention stabilization on S1
-- Проблема: у Штаба live chat id = `-1002799098412`; first attempt от `2026-03-11` был откатан, потому что delayed backup check window был выбран слишком коротким относительно real validator refresh contour.
-- Current state: reapply от `2026-03-11` уже выполнен, и current live runtime state now = `.channels.telegram.groups["-1002799098412"].requireMention = true`.
-- Риск: до следующего eligible validator cycle `telegram-config.json` ещё может оставаться stale на `false`; это само по себе не ошибка, но final stability verdict до convergence давать нельзя.
-- Source of truth:
-  - `docs/ai/SERVER_CHANGELOG_2026-03-11_HQ_REQUIRE_MENTION_REAPPLY.md`
-  - `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md`
-- Минимальное исправление:
-  - already applied as one-field runtime change:
-    - `.channels.telegram.groups["-1002799098412"].requireMention: false -> true`
-- Что не менять в этом contour:
-  - `mentionPatterns`
-  - `replyToMode`
-  - `topic overrides`
-  - `workspace-validator.py`
-  - routing
-  - workflows
-  - bridge
-  - monitoring
-- Apply status: current status = `runtime success, pending validator convergence`.
-- Exact next validator refresh window:
-  - `2026-03-12 04:02:37 UTC` to `2026-03-12 04:04:37 UTC`
-  - `2026-03-12 07:02:37 MSK` to `2026-03-12 07:04:37 MSK`
-- Rollback: current apply did not require rollback; future rollback is needed only if later validator convergence goes wrong.
-- Post-check:
-  - immediate field flip in runtime = passed
-  - `mentionPatterns`, `replyToMode`, topic overrides unchanged = passed
-  - stale `telegram-config.json` before the window above = not an error
-  - delayed convergence validator backup к `requireMention=true`
-  - only then считать contour stable
 
 ### Tender specialist skill hygiene on S1
 - Проблема: weekly narrow audit подтвердил, что `tender-specialist` живёт на `S1` как server-side Boris skill, и его contour уже фактически = `skill + script`, но в `SKILL.md` остались три узкие проблемы orchestration-layer.
