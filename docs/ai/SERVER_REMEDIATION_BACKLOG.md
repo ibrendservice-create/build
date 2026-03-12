@@ -16,6 +16,7 @@
 - `docs/ai/SERVER_CHANGELOG_2026-03-11_tg_helper_token_hardening.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-11_boris_wave0_chat_hardstop.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-12_boris_group_selfmod_deny_and_route_closure.md`
+- `docs/ai/SERVER_CHANGELOG_2026-03-12_cron_split_off_main.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-11_HQ_REQUIRE_MENTION_FAILED.md`
 - `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`
 
@@ -285,6 +286,39 @@
   - `group:fs` intentionally remains open
   - file-based self-mod risk reduced, not fully removed
 
+### S1 cron split off main applied
+- Проблема: stronger per-agent hardening of `main` was still blocked because enabled cron jobs still used shared `agentId=main`, plus `okdesk-comment-monitor` still used the implicit/default path.
+- Риск: cron ownership remained mixed with the shared `main` agent contour, so any stronger `main` hardening still carried collateral cron risk.
+- Source of truth: `docs/ai/SERVER_CHANGELOG_2026-03-12_cron_split_off_main.md`.
+- Минимальное исправление:
+  - manual edit only in `/var/lib/apps-data/openclaw/data/model-strategy.json`
+  - added `11` exact `cron_job_routes` for the remaining jobs off `main`
+  - preserved without changes:
+    - existing morning/evening digest routes
+    - their fallback chains
+  - executed one materialization run:
+    - `docker exec openclaw-kbxr-openclaw-1 python3 /data/fix-model-strategy.py`
+- Derived effect:
+  - `jobs.json` updated `agentId` for `11` target jobs
+  - `openclaw.json` materialized `11` new cron agents in `agents.list`
+- Rollback: не потребовался; backup = `/root/cron-split-main-20260312T094923Z`.
+- Post-check:
+  - `model-strategy.json` now has `13` exact `cron_job_routes`
+  - `jobs.json` now has `0` enabled jobs on `main`
+  - `jobs.json` now has `0` implicit jobs
+  - `openclaw.json -> agents.list` now has `14` entries = `main + 13 cron agents`
+  - duplicate ids = none
+  - all `13` jobs kept unchanged:
+    - `payload.model`
+    - schedules
+    - delivery
+    - `sessionTarget`
+    - `wakeMode`
+  - natural runtime proof confirmed:
+    - `okdesk-comment-monitor` ran on `cron-okdesk-comment-monitor` with `lastStatus=ok`
+    - `HH Monitor v3` ran on `cron-hh-monitor-v3` with `lastStatus=ok`
+  - main cron blocker removed
+
 ## 2. Docs-only resolved
 
 ### Canon aligned with audited live drift
@@ -471,13 +505,13 @@
 - Риск:
   - wrong hardening can kill Boris employee capabilities
   - wrong separation can mix business work, owner policy, business memory, session memory and system core
-  - stronger per-agent hardening of `main` before cron split can hit `10` enabled `main` jobs and one additional enabled job with `agentId=null` (`okdesk-comment-monitor`)
+  - stronger per-agent hardening of `main` is now unblocked by cron ownership, but still needs its own approved wave and must not be mixed with owner-policy / business-memory separation
 - Source of truth: `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md`.
 - Минимальное исправление:
   - no direct live fix in this backlog item
   - preserve as approve-only architecture wave stack
 - Exact next waves:
-  - `cron split off main`
+  - stronger per-agent hardening of `main`
   - `owner policy layer`
   - `business memory writer`
   - `employee workspace / safe business file tooling`

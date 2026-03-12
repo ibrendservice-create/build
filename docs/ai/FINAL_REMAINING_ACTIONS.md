@@ -194,6 +194,34 @@
   - `group:fs` intentionally remains open in this wave
   - file-based self-mod risk reduced, not fully removed
 
+### Cron split off main on S1
+- Что это: narrow live apply for `S1` internal OpenClaw cron agent ownership.
+- Почему не осталось: apply уже выполнен успешно и снял confirmed cron blocker for stronger per-agent hardening of `main`.
+- Source of truth:
+  - `docs/ai/SERVER_CHANGELOG_2026-03-12_cron_split_off_main.md`
+  - `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md`
+- Что изменилось:
+  - `model-strategy.json` получил `11` new exact `cron_job_routes`
+  - existing morning/evening digest routes and fallback chains were preserved unchanged
+  - one materialization run updated derived runtime:
+    - `jobs.json` moved `11` remaining jobs off `main`
+    - `openclaw.json` materialized `11` new cron agents in `agents.list`
+- Post-check:
+  - `model-strategy.json` now has `13` exact `cron_job_routes`
+  - `jobs.json` now has `0` enabled jobs on `main`
+  - `jobs.json` now has `0` implicit jobs
+  - `openclaw.json -> agents.list` now has `main + 13 cron agents`
+  - no duplicate ids
+  - all `13` jobs kept unchanged:
+    - `payload.model`
+    - schedules
+    - delivery fields
+    - `sessionTarget`
+    - `wakeMode`
+  - `okdesk-comment-monitor` natural run observed on `cron-okdesk-comment-monitor` with `lastStatus=ok`
+  - `HH Monitor v3` natural run observed on `cron-hh-monitor-v3` with `lastStatus=ok`
+- Rollback: не потребовался; backup лежит в `/root/cron-split-main-20260312T094923Z`.
+
 ## 2. Docs-only resolved
 
 ### Canon aligned with audited live drift
@@ -332,7 +360,7 @@
   - он не делает live apply и не заменяет отдельные approved hardening waves
 - Post-check:
   - канон и backlog ссылаются на один dated addendum
-  - key decisions по owner-policy layer, business-memory separation и `cron split off main` сохранены в repo, а не только в чате
+  - key decisions по owner-policy layer, business-memory separation и sequence after `cron split off main` сохранены в repo, а не только в чате
 
 ## 3. Decisions accepted, no apply needed
 
@@ -372,12 +400,14 @@
 - Что это: approve-only architecture wave stack, needed to keep Boris as a full employee agent while removing self-modification and mixed-trust control-plane behavior.
 - Почему осталось:
   - Wave 0 already closed official chat-admin surfaces
+  - `/route` closure and group-scoped self-mod deny are already applied
+  - `cron split off main` is already completed successfully
   - shared trust boundary still remains
   - owner policy and business memory are still not separated from system/core planning
-  - stronger per-agent hardening of `main` is blocked while `10` enabled jobs still use `agentId=main` and one more enabled job (`okdesk-comment-monitor`) still has `agentId=null`
+  - stronger per-agent hardening of `main` is now unblocked, but still requires its own approved wave
 - Source of truth: `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md`.
 - Exact next architecture waves to preserve:
-  - `cron split off main`
+  - stronger per-agent hardening of `main`
   - `owner policy layer`
   - `business memory writer`
   - `employee workspace / safe business file tooling`
@@ -387,7 +417,7 @@
   - do not blanket-deny browser/web/file business work
   - do not mix business work with system-core mutation
   - do not move owner authority into normal business memory
-  - do not harden `main` broadly before `cron split off main`
+  - do not broaden `main` hardening outside a separate approved wave
 - Rollback:
   - not applicable until a specific approved server-side wave exists
 - Post-check:
