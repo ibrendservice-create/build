@@ -119,6 +119,7 @@ Do not reopen without new explicit evidence.
 | parse-file exec-first / staging-first instruction gap | `SERVER_CHANGELOG_2026-03-13_exec_deny_alias_fix_and_parse_file_patch.md` | [LIVE] CLOSED |
 | gog NFD/NFC download path avoidance | `SERVER_CHANGELOG_2026-03-13_gog_skill_nfd_nfc_download_path_fix.md` | [LIVE] CLOSED |
 | Auth-profile EACCES guard (Option A closure) | `SERVER_CHANGELOG_2026-03-13_timur_auth_profile_eacces_guard.md` | [LIVE] CLOSED |
+| Tender specialist skill hygiene | Live verification 2026-03-13: all 3 audit issues already fixed; see `SERVER_AUDIT_ADDENDUM_2026-03-11_TENDER_SPECIALIST.md` | [LIVE] CLOSED |
 
 ---
 
@@ -127,9 +128,8 @@ Do not reopen without new explicit evidence.
 | # | Contour | Classification | Current stage | Next expected prompt type |
 |---|---------|---------------|---------------|--------------------------|
 | 1 | **Boris employee architecture — owner policy / business memory separation** | approve-only architecture | not started; prerequisites B2 + Option A (hash integrity) now completed | **D** (apply plan) |
-| 2 | **Cron/master SoT migration program** | approved migration track | Phase 1 Slice 1 + cleanup Wave A + Wave B + definition-field snapshot slices 1+2+3 verified + `notify` skipped as vestigial; route/model subset enforced; all meaningful definition fields snapshot-only in `cron-master.json` (`enabled`, `schedule`, `delivery`, `sessionTarget`, `wakeMode`, `message`); no enforcement for snapshot-only fields; contour open | **G** (post-definition-field stage decision) |
-| 3 | **Tender specialist skill hygiene** | low-risk server-side patch | not applied yet | **E** (apply) in low-risk window |
-| 4 | **pg-tunnel-s2 contingency contour** | optional housekeeping | owner decision pending | **G** (owner decision) |
+| 2 | **Cron/master SoT migration program** | approved migration track | Phase 1 Slice 1 + cleanup Wave A + Wave B + definition-field snapshot slices 1+2+3 verified + `notify` skipped as vestigial; route/model subset enforced; definition-field enforcement applied and verified (78/78 fields OK); internal fixer trigger = startup/manual only, not periodic steady-state; contour open | **G** (trigger-model owner decision) |
+| 3 | **pg-tunnel-s2 contingency contour** | optional housekeeping | owner decision pending | **G** (owner decision) |
 
 ---
 
@@ -141,7 +141,7 @@ Do not reopen without new explicit evidence.
 | Internal cron models | [LIVE] `cron-master.json` (declarative; migrated from `model-strategy.json` via Slice 1 + Wave B) | [LIVE] `jobs.json.payload.model` | high |
 | External Boris chain | [LIVE] external `fix-model-strategy.py` | [LIVE] external `openclaw.json` | high |
 | Cron job route/model fields | [LIVE] `cron-master.json.cron_job_routes` (legacy fields removed from `model-strategy.json` in Wave B) | [LIVE] `jobs.json` via `fix-model-strategy.py` | high |
-| Cron job definition fields (`enabled`, `schedule`, `delivery`, `sessionTarget`, `wakeMode`, `message`) | [LIVE] `cron-master.json` snapshot/reference (not enforced); Gateway remains sole writer in `jobs.json`; `notify` skipped as vestigial | [LIVE] `jobs.json` | medium |
+| Cron job definition fields (`enabled`, `schedule`, `delivery`, `sessionTarget`, `wakeMode`, `message`) | [LIVE] `cron-master.json` (enforced via `fix-model-strategy.py` Section 4; trigger = startup/manual only, not periodic cron); `notify` skipped as vestigial | [LIVE] `jobs.json` | high |
 | Cron job state/meta fields | [LIVE] Gateway scheduler runtime | [LIVE] `jobs.json` | high |
 | Prompt/rules on S1 | [LIVE] `/data/.openclaw/workspace/memory/RULES.md` | same | high |
 | Telegram group config | [LIVE] internal `openclaw.json` | same | high |
@@ -160,7 +160,7 @@ See `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` for full matrix. Key entries:
 | Target | Key writers | Trigger |
 |--------|------------|---------|
 | internal `openclaw.json` | `startup-cleanup.sh`, `fix-model-strategy.py`, `circuit-breaker-internal.py`, `workspace-validator.py` | startup, cron, boris-doctor |
-| internal `jobs.json` model fields | `fix-model-strategy.py` (reads from `cron-master.json` first, fallback `model-strategy.json`) | startup post-K |
+| internal `jobs.json` model + definition fields | `fix-model-strategy.py` (reads from `cron-master.json` first, fallback `model-strategy.json`; Sections 2-3 = route/model, Section 4 = definition fields) | startup/manual (NOT on periodic cron for internal container) |
 | external `openclaw.json` | `startup-external.sh`, external `fix-model-strategy.py` | startup, cron `* * * * *` |
 | `RULES.md`, `SOUL.md`, skills | `workspace-validator.py` (hash-based integrity) | boris-doctor 6h |
 | tracked configs | `service-guard.py` | self-heal loop |
@@ -174,7 +174,7 @@ See `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` for full matrix. Key entries:
 
 | Materializer | What it produces | Trigger |
 |-------------|-----------------|---------|
-| internal `fix-model-strategy.py` | `openclaw.json`, `models.json`, `jobs.json` model/agent fields (source: `cron-master.json` first, fallback `model-strategy.json`) | startup + manual |
+| internal `fix-model-strategy.py` | `openclaw.json`, `models.json`, `jobs.json` model/agent + definition fields (source: `cron-master.json` first, fallback `model-strategy.json`) | startup + manual (NOT on periodic cron for internal container) |
 | external `fix-model-strategy.py` | external `openclaw.json`, `models.json` | cron `* * * * *` |
 | `workspace-validator.py` | restored skills/rules/SOUL.md from backup (hash-based integrity for RULES.md + SOUL.md) | boris-doctor 6h |
 | `service-guard.py` | baseline acceptance or rollback | continuous |
@@ -216,6 +216,7 @@ See `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` for full matrix. Key entries:
 - exec denied via bash→exec alias + parse-file exec-first/staging-first gap — CLOSED 2026-03-13
 - gog NFD/NFC download path avoidance — CLOSED 2026-03-13
 - Auth-profile EACCES guard (Option A) — CLOSED 2026-03-13
+- Tender specialist skill hygiene — CLOSED 2026-03-13 (already fixed in live, no apply needed)
 - Gateway/health-check docs drift — CLOSED
 - Bridge-ha canonical probe — CLOSED
 
@@ -230,7 +231,7 @@ See `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` for full matrix. Key entries:
 | `pg-tunnel-s2.service` legacy noise | [LIVE] operational noise | needs owner decision |
 | Dual-install drift (`/usr/local` vs `.npm-global`) | [LIVE] both patched, but dual families remain | runtime complexity |
 | `workspace-validator` 6h auto-restore | [LIVE] can revert intentional changes; now uses SHA-256 hash (not just size) for RULES.md + SOUL.md | writer/enforcer risk (reduced) |
-| Multi-writer cron architecture (B-now) | [LIVE] route/model subset enforced via `cron-master.json`; all meaningful definition fields (`enabled`/`schedule`/`delivery`/`sessionTarget`/`wakeMode`/`message`) snapshot-only in `cron-master.json`; `notify` skipped as vestigial; no enforcement for snapshot-only fields | migration in progress, route/model + def snapshot slices 1+2+3 completed |
+| Multi-writer cron architecture (B-now) | [LIVE] route/model + definition fields enforced via `cron-master.json` → `fix-model-strategy.py`; `notify` skipped as vestigial; internal fixer trigger = startup/manual only, not periodic steady-state | migration in progress, route/model + def snapshot + enforcement completed; trigger model pending |
 | `group:fs` restricted by `workspaceOnly=true` on `main` | [LIVE] file-based self-mod risk reduced to workspace scope | B2 applied 2026-03-13 |
 | Shared trust boundary | [DOCS] target accepted, not applied | architecture program |
 | S2 disk usage trend | [LIVE] 71% at audit date | watch item |
@@ -248,17 +249,12 @@ See `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` for full matrix. Key entries:
 
 ### 2. Cron/master SoT migration
 
-- **Proven** [LIVE]: Slice 1 applied (`cron-master.json` created, `fix-model-strategy.py` patched); cleanup Wave A applied (readers migrated to `cron-master.json`-first); cleanup Wave B applied (4 legacy cron fields removed from `model-strategy.json`); definition-field snapshot slice 1 applied (`enabled` + `schedule`); definition-field snapshot slice 2 applied (`delivery` + `sessionTarget` + `wakeMode`); definition-field snapshot slice 3 applied (`message`). All six verified and documented. All meaningful definition fields now have snapshot-only coverage in `cron-master.json`.
-- **Proven** [DOCS]: owner approved target C + B-now interim + Phase 1 design + all three definition-field snapshot-only slices + notify skip
-- **Not proven**: `notify` skipped as vestigial (3/13 partial, all `false`, zero readers/writers); enforcement for any snapshot-only fields; state/meta formalization; full target C
-- **Source docs**: `SERVER_CHANGELOG_2026-03-13_cron_master_slice1.md`, `SERVER_CHANGELOG_2026-03-13_cron_master_cleanup_waveA.md`, `SERVER_CHANGELOG_2026-03-13_cron_master_cleanup_waveB.md`, `SERVER_CHANGELOG_2026-03-13_cron_master_def_slice_enabled_schedule.md`, `SERVER_CHANGELOG_2026-03-13_cron_master_def_slice2_delivery_sessionTarget_wakeMode.md`, `SERVER_CHANGELOG_2026-03-13_cron_master_def_slice3_message.md`, `SERVER_AUDIT_ADDENDUM_2026-03-13_CRON_MASTER_FIELD_OWNERSHIP_DECISION_PREP.md`
-- **Next step**: owner/design decision about post-definition-field stage: `_comment_cron_job_routes` cosmetic cleanup, state/meta formalization, or enforcement design (all separate tasks, separate approve)
-
-### 3. Tender specialist skill hygiene
-
-- **Proven** [LIVE]: contour = skill + script; three `SKILL.md` issues identified
-- **Not proven**: patch not applied
-- **Next step**: low-risk apply in change window
+- **Proven** [LIVE]: Slice 1 applied (`cron-master.json` created, `fix-model-strategy.py` patched); cleanup Wave A applied (readers migrated to `cron-master.json`-first); cleanup Wave B applied (4 legacy cron fields removed from `model-strategy.json`); definition-field snapshot slices 1+2+3 applied (all meaningful definition fields in `cron-master.json`); definition-field enforcement applied (`fix-model-strategy.py` loader extended + Section 4 added); 78/78 field checks OK; injected drift correction test passed; no collateral drift; container healthy. All verified and documented.
+- **Proven** [DOCS]: owner approved target C + B-now interim + Phase 1 design + all three definition-field snapshot-only slices + notify skip + enforcement direction
+- **Proven** [LIVE]: internal `fix-model-strategy.py` on `openclaw-kbxr-openclaw-1` is NOT on periodic cron; enforcement triggers only on manual run or container restart
+- **Not proven**: periodic steady-state trigger model; state/meta formalization; full target C
+- **Source docs**: `SERVER_CHANGELOG_2026-03-13_cron_master_slice1.md`, `SERVER_CHANGELOG_2026-03-13_cron_master_cleanup_waveA.md`, `SERVER_CHANGELOG_2026-03-13_cron_master_cleanup_waveB.md`, `SERVER_CHANGELOG_2026-03-13_cron_master_def_slice_enabled_schedule.md`, `SERVER_CHANGELOG_2026-03-13_cron_master_def_slice2_delivery_sessionTarget_wakeMode.md`, `SERVER_CHANGELOG_2026-03-13_cron_master_def_slice3_message.md`, `SERVER_CHANGELOG_2026-03-13_cron_master_definition_field_enforcement.md`, `SERVER_AUDIT_ADDENDUM_2026-03-13_CRON_MASTER_FIELD_OWNERSHIP_DECISION_PREP.md`
+- **Next step**: trigger-model owner decision (add periodic cron entry for internal fixer, or accept startup/manual-only); then state/meta formalization (separate owner decision); `_comment_cron_job_routes` cosmetic cleanup (optional)
 
 ---
 
@@ -272,8 +268,9 @@ See `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` for full matrix. Key entries:
 | Cron/master migration Phase 1 route/model slice | **APPLIED** | Slice 1 + Wave A + Wave B verified 2026-03-13 |
 | Cron/master definition-field snapshot slice 1 (enabled + schedule) | **APPLIED** | snapshot-only, no enforcement |
 | Cron/master definition-field snapshot slice 2 (delivery + sessionTarget + wakeMode) | **APPLIED** | snapshot-only, no enforcement |
-| Cron/master definition-field snapshot slice 3 (message) | **APPLIED** | snapshot-only, no enforcement; `notify` skipped as vestigial; all meaningful def-field snapshot coverage complete |
-| Tender specialist patch | **ready** | needs only low-risk change window + backup |
+| Cron/master definition-field snapshot slice 3 (message) | **APPLIED** | snapshot-only; `notify` skipped as vestigial; all meaningful def-field snapshot coverage complete |
+| Cron/master definition-field enforcement | **APPLIED** | 78/78 fields OK; injected drift test passed; trigger = startup/manual only (not periodic steady-state) |
+| Tender specialist patch | **CLOSED** | all 3 issues already fixed in live; verified 2026-03-13; no apply needed |
 | Auth-profile / EACCES | **CLOSED** | owner decision Option A; applied-live evidence + code inspection; deferred proof waived |
 | RULES.md + SOUL.md hash integrity (Option A) | **APPLIED** | completed 2026-03-13; see `SERVER_CHANGELOG_2026-03-13_rules_soul_hash_integrity.md` |
 | Owner policy layer | **not ready** | not started; prerequisites B2 + Option A now completed |
@@ -283,4 +280,4 @@ See `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` for full matrix. Key entries:
 
 ## One-line master summary
 
-Boris/OpenClaw as of 2026-03-13: infrastructure stable with WARN; 20+ hardening waves completed; XLSX proof chain complete + B2 `workspaceOnly=true` applied + RULES.md/SOUL.md content-hash integrity (Option A) applied + exec-denied-via-bash-alias fixed + parse-file exec-first/staging-first patched + gog NFD/NFC download path avoidance applied + auth-profile EACCES guard applied and closed by owner decision (Option A) (all canary-verified or inspection-verified end-to-end); cron/master SoT migration route/model slice completed (Slice 1 + Wave A + Wave B verified, `cron-master.json` live, legacy fields removed from `model-strategy.json`) + definition-field snapshot slices 1+2+3 completed (all meaningful definition fields snapshot-only in `cron-master.json`, no enforcement) + `notify` skipped as vestigial; next milestones = owner-policy/business-memory separation, post-definition-field stage decision (cosmetic cleanup / state-meta / enforcement), tender specialist skill hygiene; shared trust boundary remains the open architecture target.
+Boris/OpenClaw as of 2026-03-13: infrastructure stable with WARN; 20+ hardening waves completed; XLSX proof chain complete + B2 `workspaceOnly=true` applied + RULES.md/SOUL.md content-hash integrity (Option A) applied + exec-denied-via-bash-alias fixed + parse-file exec-first/staging-first patched + gog NFD/NFC download path avoidance applied + auth-profile EACCES guard applied and closed by owner decision (Option A) (all canary-verified or inspection-verified end-to-end); cron/master SoT migration route/model slice completed (Slice 1 + Wave A + Wave B verified, `cron-master.json` live, legacy fields removed from `model-strategy.json`) + definition-field snapshot slices 1+2+3 completed + definition-field enforcement applied and verified (78/78 fields OK, `fix-model-strategy.py` Section 4; trigger = startup/manual only, not periodic steady-state) + `notify` skipped as vestigial; tender specialist skill hygiene verified already-resolved-in-live and closed; next milestones = trigger-model owner decision (periodic cron for internal fixer), owner-policy/business-memory separation, state/meta formalization; shared trust boundary remains the open architecture target.
