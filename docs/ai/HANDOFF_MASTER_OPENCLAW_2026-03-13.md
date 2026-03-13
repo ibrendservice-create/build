@@ -47,7 +47,7 @@
 | 2026-03-11 | Audits | `DOCTOR_AND_SELFHEAL_AUDIT` |
 | 2026-03-12 | Addenda | `TG_HEALTH_PATH_CONTRADICTION`, `BORIS_EMPLOYEE_ARCHITECTURE`, `S1_GATEWAY_RESTART_AUTHORIZATION_PATH`, `XLSX_DETERMINISTIC_PROOF_PATH`, `XLSX_PERMISSION_AUTHENTIC_STEP1_PROOF_PATH` |
 | 2026-03-13 | Addenda | `RAW_INBOUND_GUARD_PATCH_LOCATION_MISS`, `DUAL_INSTALL_CLI_PROOF_PATH`, `REAL_DM_RUNTIME_NPM_GLOBAL`, `CRON_MASTER_FIELD_OWNERSHIP_DECISION_PREP`, `XLSX_PROOF_CHAIN_COMPLETE` |
-| 2026-03-13 | Changelogs | `gdrive_index_recovery`, `search_closeout`, `gog_closeout`, `raw_inbound_guard_patch_location_correction`, `npm_global_raw_inbound_guard_correction`, `b2_workspaceonly_apply` |
+| 2026-03-13 | Changelogs | `gdrive_index_recovery`, `search_closeout`, `gog_closeout`, `raw_inbound_guard_patch_location_correction`, `npm_global_raw_inbound_guard_correction`, `b2_workspaceonly_apply`, `cron_master_slice1`, `cron_master_cleanup_waveA`, `cron_master_cleanup_waveB`, `cron_master_def_slice_enabled_schedule`, `cron_master_def_slice2_delivery_sessionTarget_wakeMode`, `cron_master_def_slice3_message`, `rules_soul_hash_integrity`, `exec_deny_alias_fix_and_parse_file_patch` |
 
 ---
 
@@ -112,8 +112,11 @@ Do not reopen without new explicit evidence.
 | XLSX Step 1 (ingress/staging proof) | `SERVER_AUDIT_ADDENDUM_2026-03-13_XLSX_PROOF_CHAIN_COMPLETE.md` | [LIVE] CLOSED |
 | XLSX Step 2 (workbook semantic proof) | `SERVER_AUDIT_ADDENDUM_2026-03-13_XLSX_PROOF_CHAIN_COMPLETE.md` | [LIVE] CLOSED |
 | B2 workspaceOnly apply | `SERVER_CHANGELOG_2026-03-13_b2_workspaceonly_apply.md` | [LIVE] CLOSED |
+| RULES.md + SOUL.md content-hash integrity (Option A) | `SERVER_CHANGELOG_2026-03-13_rules_soul_hash_integrity.md` | [LIVE] CLOSED |
 | Canon/docs alignment | `FINAL_REMAINING_ACTIONS.md` §2 | [DOCS] CLOSED |
 | Observer doctor-agent MVP | `OBSERVER_DOCTOR_MVP.md` | [DOCS] CLOSED |
+| exec denied via bash→exec alias in per-group tools.deny | `SERVER_CHANGELOG_2026-03-13_exec_deny_alias_fix_and_parse_file_patch.md` | [LIVE] CLOSED |
+| parse-file exec-first / staging-first instruction gap | `SERVER_CHANGELOG_2026-03-13_exec_deny_alias_fix_and_parse_file_patch.md` | [LIVE] CLOSED |
 
 ---
 
@@ -121,8 +124,8 @@ Do not reopen without new explicit evidence.
 
 | # | Contour | Classification | Current stage | Next expected prompt type |
 |---|---------|---------------|---------------|--------------------------|
-| 1 | **Boris employee architecture — owner policy / business memory separation** | approve-only architecture | not started; prerequisite B2 now completed | **D** (apply plan) |
-| 2 | **Cron/master SoT migration program** | approved migration track | Phase 1 design approved; `cron-master.json` does not exist yet | **D** (apply plan) → **E** (apply) |
+| 1 | **Boris employee architecture — owner policy / business memory separation** | approve-only architecture | not started; prerequisites B2 + Option A (hash integrity) now completed | **D** (apply plan) |
+| 2 | **Cron/master SoT migration program** | approved migration track | Phase 1 Slice 1 + cleanup Wave A + Wave B + definition-field snapshot slices 1+2+3 verified + `notify` skipped as vestigial; route/model subset enforced; all meaningful definition fields snapshot-only in `cron-master.json` (`enabled`, `schedule`, `delivery`, `sessionTarget`, `wakeMode`, `message`); no enforcement for snapshot-only fields; contour open | **G** (post-definition-field stage decision) |
 | 3 | **Tender specialist skill hygiene** | low-risk server-side patch | not applied yet | **E** (apply) in low-risk window |
 | 4 | **Timur Morning/Evening dedicated-agent auth-profile materialization / EACCES** | apply plan hardening / normalization | apply plan drafted, not yet approve-ready; see `docs/ai/HANDOFF_WAVE_2026-03-13_timur_auth_profile_eacces.md` | **D** (apply plan normalization), not yet **G** |
 | 5 | **pg-tunnel-s2 contingency contour** | optional housekeeping | owner decision pending | **G** (owner decision) |
@@ -134,10 +137,10 @@ Do not reopen without new explicit evidence.
 | What | Master | Effective runtime | Confidence |
 |------|--------|-------------------|------------|
 | Internal default model chain | [LIVE] `model-strategy.json` | [LIVE] internal `openclaw.json` | high |
-| Internal cron models | [LIVE] `model-strategy.json` (declarative) | [LIVE] `jobs.json.payload.model` | high |
+| Internal cron models | [LIVE] `cron-master.json` (declarative; migrated from `model-strategy.json` via Slice 1 + Wave B) | [LIVE] `jobs.json.payload.model` | high |
 | External Boris chain | [LIVE] external `fix-model-strategy.py` | [LIVE] external `openclaw.json` | high |
-| Cron job route/model fields | [LIVE] `model-strategy.json.cron_job_routes` | [LIVE] `jobs.json` via `fix-model-strategy.py` | high |
-| Cron job definition fields | [UNKNOWN] best evidence = Gateway-managed | [LIVE] `jobs.json` | medium |
+| Cron job route/model fields | [LIVE] `cron-master.json.cron_job_routes` (legacy fields removed from `model-strategy.json` in Wave B) | [LIVE] `jobs.json` via `fix-model-strategy.py` | high |
+| Cron job definition fields (`enabled`, `schedule`, `delivery`, `sessionTarget`, `wakeMode`, `message`) | [LIVE] `cron-master.json` snapshot/reference (not enforced); Gateway remains sole writer in `jobs.json`; `notify` skipped as vestigial | [LIVE] `jobs.json` | medium |
 | Cron job state/meta fields | [LIVE] Gateway scheduler runtime | [LIVE] `jobs.json` | high |
 | Prompt/rules on S1 | [LIVE] `/data/.openclaw/workspace/memory/RULES.md` | same | high |
 | Telegram group config | [LIVE] internal `openclaw.json` | same | high |
@@ -156,9 +159,9 @@ See `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` for full matrix. Key entries:
 | Target | Key writers | Trigger |
 |--------|------------|---------|
 | internal `openclaw.json` | `startup-cleanup.sh`, `fix-model-strategy.py`, `circuit-breaker-internal.py`, `workspace-validator.py` | startup, cron, boris-doctor |
-| internal `jobs.json` model fields | `fix-model-strategy.py` | startup post-K |
+| internal `jobs.json` model fields | `fix-model-strategy.py` (reads from `cron-master.json` first, fallback `model-strategy.json`) | startup post-K |
 | external `openclaw.json` | `startup-external.sh`, external `fix-model-strategy.py` | startup, cron `* * * * *` |
-| `RULES.md`, skills | `workspace-validator.py` | boris-doctor 6h |
+| `RULES.md`, `SOUL.md`, skills | `workspace-validator.py` (hash-based integrity) | boris-doctor 6h |
 | tracked configs | `service-guard.py` | self-heal loop |
 | `monitor.sh` | `watchdog-meta.sh` | cron `*/5` |
 | S1 data copies | `sync-executors-from-s2.sh`, `sync-pg-from-s2.sh` | cron |
@@ -170,9 +173,9 @@ See `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` for full matrix. Key entries:
 
 | Materializer | What it produces | Trigger |
 |-------------|-----------------|---------|
-| internal `fix-model-strategy.py` | `openclaw.json`, `models.json`, `jobs.json` model/agent fields | startup + manual |
+| internal `fix-model-strategy.py` | `openclaw.json`, `models.json`, `jobs.json` model/agent fields (source: `cron-master.json` first, fallback `model-strategy.json`) | startup + manual |
 | external `fix-model-strategy.py` | external `openclaw.json`, `models.json` | cron `* * * * *` |
-| `workspace-validator.py` | restored skills/rules from backup | boris-doctor 6h |
+| `workspace-validator.py` | restored skills/rules/SOUL.md from backup (hash-based integrity for RULES.md + SOUL.md) | boris-doctor 6h |
 | `service-guard.py` | baseline acceptance or rollback | continuous |
 | `patch-reasoning-fix.sh` | RAW_INBOUND_GUARD in `/usr/local` + `.npm-global` families | startup |
 
@@ -192,6 +195,7 @@ See `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` for full matrix. Key entries:
 10. `jobs.json` is not whole-file canonical master.
 11. Target C (cron SoT) is not yet live.
 12. Do not expand auto-repair without owner decision.
+13. `bash` must NOT be added to per-group `tools.deny`: OpenClaw `TOOL_NAME_ALIASES` maps `bash` → `exec`, so denying `bash` also denies `exec`. Standard `bash` tool is already stripped from codingTools in runtime.
 
 ---
 
@@ -205,6 +209,8 @@ See `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` for full matrix. Key entries:
 - All raw-inbound guard corrections (both families) — CLOSED 2026-03-13
 - XLSX Step 1 + Step 2 proof chain — CLOSED 2026-03-13
 - B2 workspaceOnly apply — CLOSED 2026-03-13
+- RULES.md + SOUL.md content-hash integrity (Option A) — CLOSED 2026-03-13
+- exec denied via bash→exec alias + parse-file exec-first/staging-first gap — CLOSED 2026-03-13
 - Gateway/health-check docs drift — CLOSED
 - Bridge-ha canonical probe — CLOSED
 
@@ -218,8 +224,8 @@ See `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` for full matrix. Key entries:
 | Internal cron periodic enforcer weaker than external | [LIVE] operational risk | KNOWN_BUGS |
 | `pg-tunnel-s2.service` legacy noise | [LIVE] operational noise | needs owner decision |
 | Dual-install drift (`/usr/local` vs `.npm-global`) | [LIVE] both patched, but dual families remain | runtime complexity |
-| `workspace-validator` 6h auto-restore | [LIVE] can revert intentional changes | writer/enforcer risk |
-| Multi-writer cron architecture (B-now) | [LIVE] no single canonical master | migration approved, not started |
+| `workspace-validator` 6h auto-restore | [LIVE] can revert intentional changes; now uses SHA-256 hash (not just size) for RULES.md + SOUL.md | writer/enforcer risk (reduced) |
+| Multi-writer cron architecture (B-now) | [LIVE] route/model subset enforced via `cron-master.json`; all meaningful definition fields (`enabled`/`schedule`/`delivery`/`sessionTarget`/`wakeMode`/`message`) snapshot-only in `cron-master.json`; `notify` skipped as vestigial; no enforcement for snapshot-only fields | migration in progress, route/model + def snapshot slices 1+2+3 completed |
 | `group:fs` restricted by `workspaceOnly=true` on `main` | [LIVE] file-based self-mod risk reduced to workspace scope | B2 applied 2026-03-13 |
 | Shared trust boundary | [DOCS] target accepted, not applied | architecture program |
 | S2 disk usage trend | [LIVE] 71% at audit date | watch item |
@@ -231,15 +237,17 @@ See `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` for full matrix. Key entries:
 
 ### 1. Boris employee architecture — owner policy / business memory separation
 
-- **Proven** [LIVE]: B2 applied (`workspaceOnly=true`); Step 1 + Step 2 PASS; all prior waves completed (Wave 0, `/route` closure, cron split, per-agent hardening, B1 staging, raw-inbound guard both families)
+- **Proven** [LIVE]: B2 applied (`workspaceOnly=true`); Step 1 + Step 2 PASS; all prior waves completed (Wave 0, `/route` closure, cron split, per-agent hardening, B1 staging, raw-inbound guard both families); RULES.md + SOUL.md content-hash integrity (Option A) applied — both files now have SHA-256 hash protection + auto-restore via workspace-validator every 6h
 - **Not proven**: owner-policy / business-memory separation not started
 - **Next step**: apply plan for owner-policy layer separation
 
 ### 2. Cron/master SoT migration
 
-- **Proven** [DOCS]: owner approved target C + B-now interim + Phase 1 design
-- **Not proven**: `cron-master.json` does not exist on S1; no wave executed
-- **Next step**: separate apply task for first migration wave
+- **Proven** [LIVE]: Slice 1 applied (`cron-master.json` created, `fix-model-strategy.py` patched); cleanup Wave A applied (readers migrated to `cron-master.json`-first); cleanup Wave B applied (4 legacy cron fields removed from `model-strategy.json`); definition-field snapshot slice 1 applied (`enabled` + `schedule`); definition-field snapshot slice 2 applied (`delivery` + `sessionTarget` + `wakeMode`); definition-field snapshot slice 3 applied (`message`). All six verified and documented. All meaningful definition fields now have snapshot-only coverage in `cron-master.json`.
+- **Proven** [DOCS]: owner approved target C + B-now interim + Phase 1 design + all three definition-field snapshot-only slices + notify skip
+- **Not proven**: `notify` skipped as vestigial (3/13 partial, all `false`, zero readers/writers); enforcement for any snapshot-only fields; state/meta formalization; full target C
+- **Source docs**: `SERVER_CHANGELOG_2026-03-13_cron_master_slice1.md`, `SERVER_CHANGELOG_2026-03-13_cron_master_cleanup_waveA.md`, `SERVER_CHANGELOG_2026-03-13_cron_master_cleanup_waveB.md`, `SERVER_CHANGELOG_2026-03-13_cron_master_def_slice_enabled_schedule.md`, `SERVER_CHANGELOG_2026-03-13_cron_master_def_slice2_delivery_sessionTarget_wakeMode.md`, `SERVER_CHANGELOG_2026-03-13_cron_master_def_slice3_message.md`, `SERVER_AUDIT_ADDENDUM_2026-03-13_CRON_MASTER_FIELD_OWNERSHIP_DECISION_PREP.md`
+- **Next step**: owner/design decision about post-definition-field stage: `_comment_cron_job_routes` cosmetic cleanup, state/meta formalization, or enforcement design (all separate tasks, separate approve)
 
 ### 3. Tender specialist skill hygiene
 
@@ -265,14 +273,18 @@ See `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` for full matrix. Key entries:
 | XLSX Step 1 canary | **PASS** | completed 2026-03-13 |
 | XLSX Step 2 | **PASS** | completed 2026-03-13 |
 | B2 (workspaceOnly) | **APPLIED** | completed 2026-03-13; see `SERVER_CHANGELOG_2026-03-13_b2_workspaceonly_apply.md` |
-| Cron/master migration Phase 1 | **not ready** | design approved, apply requires separate task + approve |
+| Cron/master migration Phase 1 route/model slice | **APPLIED** | Slice 1 + Wave A + Wave B verified 2026-03-13 |
+| Cron/master definition-field snapshot slice 1 (enabled + schedule) | **APPLIED** | snapshot-only, no enforcement |
+| Cron/master definition-field snapshot slice 2 (delivery + sessionTarget + wakeMode) | **APPLIED** | snapshot-only, no enforcement |
+| Cron/master definition-field snapshot slice 3 (message) | **APPLIED** | snapshot-only, no enforcement; `notify` skipped as vestigial; all meaningful def-field snapshot coverage complete |
 | Tender specialist patch | **ready** | needs only low-risk change window + backup |
 | Auth-profile / EACCES | **not ready** | plan still needs normalization of approve boundary / restart semantics / patcher scope |
-| Owner policy layer | **not ready** | not started; prerequisite B2 now completed |
+| RULES.md + SOUL.md hash integrity (Option A) | **APPLIED** | completed 2026-03-13; see `SERVER_CHANGELOG_2026-03-13_rules_soul_hash_integrity.md` |
+| Owner policy layer | **not ready** | not started; prerequisites B2 + Option A now completed |
 | Business memory separation | **not ready** | not started; prerequisite: owner policy |
 
 ---
 
 ## One-line master summary
 
-Boris/OpenClaw as of 2026-03-13: infrastructure stable with WARN; 20+ hardening waves completed; XLSX proof chain complete + B2 `workspaceOnly=true` applied; next milestones = owner-policy/business-memory separation, cron/master SoT migration first wave, tender specialist skill hygiene, and auth-profile/EACCES apply plan normalization; shared trust boundary remains the open architecture target.
+Boris/OpenClaw as of 2026-03-13: infrastructure stable with WARN; 20+ hardening waves completed; XLSX proof chain complete + B2 `workspaceOnly=true` applied + RULES.md/SOUL.md content-hash integrity (Option A) applied + exec-denied-via-bash-alias fixed + parse-file exec-first/staging-first patched (both canary-verified end-to-end); cron/master SoT migration route/model slice completed (Slice 1 + Wave A + Wave B verified, `cron-master.json` live, legacy fields removed from `model-strategy.json`) + definition-field snapshot slices 1+2+3 completed (all meaningful definition fields snapshot-only in `cron-master.json`, no enforcement) + `notify` skipped as vestigial; next milestones = owner-policy/business-memory separation, post-definition-field stage decision (cosmetic cleanup / state-meta / enforcement), tender specialist skill hygiene, and auth-profile/EACCES apply plan normalization; shared trust boundary remains the open architecture target.
