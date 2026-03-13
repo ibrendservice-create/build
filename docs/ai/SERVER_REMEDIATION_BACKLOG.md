@@ -20,6 +20,7 @@
 - `docs/ai/SERVER_CHANGELOG_2026-03-12_cron_split_off_main.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-12_main_per_agent_hardening_wave.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-12_boris_inbound_staging_wave.md`
+- `docs/ai/SERVER_CHANGELOG_2026-03-13_gog_closeout.md`
 - `docs/ai/SERVER_CHANGELOG_2026-03-11_HQ_REQUIRE_MENTION_FAILED.md`
 - `docs/ai/SERVER_FIX_PLAN_2026-03-10.md`
 
@@ -430,6 +431,29 @@
   - minimal instruction layer changed only `File Extractor` block in `CLAUDE.md`
   - no drift in routing / owner policy / business memory / digests / callback-forward / monitoring
 
+### S1 gog contour proven healthy and closed
+- Проблема: the `gog` contour had credential visibility and CLI availability, but direct successful end-to-end read proof for the exact runtime path had not yet been recorded, and stale Contacts/People API wording still existed in the live `gog` skill text.
+- Риск: without exact proof and text cleanup, the contour remained easy to misclassify as either auth-surface-only or still partially blocked.
+- Source of truth: `docs/ai/SERVER_CHANGELOG_2026-03-13_gog_closeout.md`.
+- Минимальное исправление:
+  - successful safe read-only proof for the exact `gog` container-runtime path was recorded
+  - server-side text cleanup changed only:
+    - `/var/lib/apps-data/openclaw/data/.openclaw/workspace/skills/gog/SKILL.md`
+- Что не менялось:
+  - executable logic
+  - runtime wiring
+  - auth/config/credentials files
+  - `jobs.json`
+  - cron/master routing
+  - adjacent contours
+- Rollback: не потребовался для backlog closeout; file-level rollback for the earlier server-side text cleanup is recorded in the dated changelog lineage.
+- Post-check:
+  - proven runtime path = `/usr/local/bin/gog`
+  - proven context = Boris container runtime, not host shell
+  - Drive, Gmail and Calendar read-only canaries completed successfully
+  - Contacts read probe also completed successfully
+  - stale People API wording no longer remains in the server-side skill text
+
 ## 2. Docs-only resolved
 
 ### Canon aligned with audited live drift
@@ -575,6 +599,7 @@
 
 На текущий момент других подтвержденных next server-side fixes по этому backlog больше нет.
 
+- `raw-inbound guard patch-location correction` уже applied successfully on `2026-03-13`; see `docs/ai/SERVER_CHANGELOG_2026-03-13_raw_inbound_guard_patch_location_correction.md`
 - `boris-email-router.timer` и `chief-doctor.timer` уже выведены из remaining actions через safe disable.
 - `Дайджест развития — Канал мастеров` оставлен без apply и не считается broken cron.
 
@@ -586,13 +611,16 @@
   - wrong hardening can kill Boris employee capabilities
   - wrong separation can mix business work, owner policy, business memory, session memory and system core
   - even after successful per-agent hardening of `main` and successful inbound staging `B1`, the remaining architecture waves still must not be mixed with owner-policy / business-memory separation
+- Additional completed prerequisite on `2026-03-13`:
+  - raw-inbound guard patch-location correction was applied successfully in the source-of-truth patcher and exact active embedded fallback bundle family; see `docs/ai/SERVER_CHANGELOG_2026-03-13_raw_inbound_guard_patch_location_correction.md`
 - Source of truth: `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md`.
 - Минимальное исправление:
   - no direct live fix in this backlog item
   - preserve as approve-only architecture wave stack
 - Exact next waves:
-  - collect live evidence that Boris now stages inbound attachments before file-tool access
-  - `B2: agents.list[id=main].tools.fs.workspaceOnly = true`
+  - `Step 1: permission-authentic ingress/staging proof` to collect live evidence that Boris now stages inbound attachments before file-tool access
+  - `Step 2: workbook semantic proof`
+  - only then `B2: agents.list[id=main].tools.fs.workspaceOnly = true`
   - `owner policy layer`
   - `business memory writer`
   - self-modification deny without killing employee capabilities

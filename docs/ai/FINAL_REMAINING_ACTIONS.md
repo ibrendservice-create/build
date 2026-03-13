@@ -336,6 +336,27 @@
   - no drift in routing / owner policy / business memory / digests / callback-forward / monitoring
 - Rollback: не потребовался; backup лежит в `/root/boris-inbound-staging-20260312T124503Z`.
 
+### Gog contour proven healthy and closed
+- Что это: narrow closeout for the safe read-only `gog` contour after successful container-runtime proof and later server-side stale-text cleanup.
+- Почему не осталось: exact `gog` runtime path уже доказан для safe read-only Drive, Gmail, Calendar and Contacts access in container runtime context; stale Contacts/People API wording in the approved server-side `gog` skill file has already been cleaned up.
+- Source of truth:
+  - `docs/ai/SERVER_CHANGELOG_2026-03-13_gog_closeout.md`
+- Что не менялось:
+  - executable logic
+  - runtime wiring
+  - auth/config/credentials files
+  - `jobs.json`
+  - cron/master routing
+  - `search`
+  - `gdrive-index`
+- Post-check:
+  - proven runtime path = `/usr/local/bin/gog`
+  - proven context = Boris container runtime, not host shell
+  - Drive, Gmail and Calendar read-only canaries completed successfully
+  - Contacts read probe also completed successfully
+  - stale People API wording no longer remains in `gog/SKILL.md`
+- Rollback: не потребовался для project-tracking closeout; file-level rollback for the earlier server-side text cleanup is recorded in the dated changelog lineage
+
 ## 2. Docs-only resolved
 
 ### Canon aligned with audited live drift
@@ -518,12 +539,14 @@
   - `cron split off main` is already completed successfully
   - stronger per-agent hardening of `main` is already completed successfully
   - inbound attachment staging `B1` is already completed successfully
+  - raw-inbound guard patch-location correction is already completed successfully on `2026-03-13`; see `docs/ai/SERVER_CHANGELOG_2026-03-13_raw_inbound_guard_patch_location_correction.md`
   - shared trust boundary still remains
   - owner policy and business memory are still not separated from system/core planning
 - Source of truth: `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md`.
 - Exact next architecture waves to preserve:
-  - collect live evidence that Boris now stages inbound attachments before file-tool access
-  - `B2: agents.list[id=main].tools.fs.workspaceOnly = true`
+  - `Step 1: permission-authentic ingress/staging proof` to collect live evidence that Boris now stages inbound attachments before file-tool access
+  - `Step 2: workbook semantic proof`
+  - only then `B2: agents.list[id=main].tools.fs.workspaceOnly = true`
   - `owner policy layer`
   - `business memory writer`
   - self-modification deny without killing employee capabilities
@@ -555,6 +578,7 @@
 
 Других подтвержденных remaining server-side actions сейчас больше нет.
 
+- `raw-inbound guard patch-location correction` уже закрыт успешным apply `2026-03-13`; see `docs/ai/SERVER_CHANGELOG_2026-03-13_raw_inbound_guard_patch_location_correction.md`
 - `boris-email-router.timer` и `chief-doctor.timer` уже безопасно отключены по owner decision.
 - `Дайджест развития — Канал мастеров` оставлен как есть и не считается broken.
 - Если позже появится новый live drift после `2026-03-10`, нужен новый read-only audit перед любым apply.
