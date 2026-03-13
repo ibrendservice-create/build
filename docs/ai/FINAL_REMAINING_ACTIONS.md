@@ -357,6 +357,18 @@
   - stale People API wording no longer remains in `gog/SKILL.md`
 - Rollback: не потребовался для project-tracking closeout; file-level rollback for the earlier server-side text cleanup is recorded in the dated changelog lineage
 
+### Timur auth-profile EACCES guard on S1 (awaiting deferred post-check)
+- Что это: defensive dist patch для `saveJsonFile()` inside `loadAuthProfileStoreForAgent()` — wraps with EACCES try-catch guard so dedicated-agent cron sessions survive ownership drift.
+- Почему здесь: apply выполнен `2026-03-13`, immediate post-check passed, patcher is idempotent and survives restarts via `startup-cleanup.sh` hook.
+- Contour closure: **pending deferred post-check** on next natural Timur morning or evening digest cron run.
+- Нужен ли ещё apply: нет, apply уже выполнен.
+- Source of truth: `docs/ai/SERVER_CHANGELOG_2026-03-13_timur_auth_profile_eacces_guard.md`.
+- Rollback: restore `startup-cleanup.sh.bak-auth-fix` + both `auth-profiles-*.js.bak-auth-fix` + container restart.
+- Post-check (deferred):
+  - cron session completes without EACCES
+  - `auth-profiles.json` mtime updated after restart time
+  - guard warning present or absent (both acceptable)
+
 ## 2. Docs-only resolved
 
 ### Canon aligned with audited live drift
@@ -539,14 +551,22 @@
   - `cron split off main` is already completed successfully
   - stronger per-agent hardening of `main` is already completed successfully
   - inbound attachment staging `B1` is already completed successfully
-  - raw-inbound guard patch-location correction is already completed successfully on `2026-03-13`; see `docs/ai/SERVER_CHANGELOG_2026-03-13_raw_inbound_guard_patch_location_correction.md`
+  - raw-inbound guard patch-location correction for `/usr/local` family is already completed successfully on `2026-03-13`; see `docs/ai/SERVER_CHANGELOG_2026-03-13_raw_inbound_guard_patch_location_correction.md`
+  - raw-inbound guard correction for the active `.npm-global` Boris DM/gateway runtime family is now also completed successfully on `2026-03-13`; see `docs/ai/SERVER_CHANGELOG_2026-03-13_npm_global_raw_inbound_guard_correction.md`
+  - both `/usr/local` and `.npm-global` runtime families now contain `RAW_INBOUND_GUARD v1`
+  - source-of-truth patcher (`patch-reasoning-fix.sh`) now covers both families (Patches 7+8 for `/usr/local`, Patch 9 for `.npm-global`)
+  - latest failed `Step 1` via direct CLI was reclassified as invalid proof-path drift; see `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_DUAL_INSTALL_CLI_PROOF_PATH.md`
+  - latest failed real Boris DM `Step 1` root cause was `.npm-global` family missing guard; see `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_REAL_DM_RUNTIME_NPM_GLOBAL.md`
+  - `.npm-global` correction now removes that blocker
+  - XLSX proof chain completed on `2026-03-13`: Step 1 PASS (ingress/staging), Step 2 PASS (workbook semantic via `exec` + `openpyxl` on staged path); see `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_XLSX_PROOF_CHAIN_COMPLETE.md`
+  - B2 (`workspaceOnly=true`) is now unblocked
   - shared trust boundary still remains
   - owner policy and business memory are still not separated from system/core planning
 - Source of truth: `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md`.
 - Exact next architecture waves to preserve:
-  - `Step 1: permission-authentic ingress/staging proof` to collect live evidence that Boris now stages inbound attachments before file-tool access
-  - `Step 2: workbook semantic proof`
-  - only then `B2: agents.list[id=main].tools.fs.workspaceOnly = true`
+  - ~~`Step 1: permission-authentic ingress/staging proof`~~ PASS 2026-03-13
+  - ~~`Step 2: workbook semantic proof`~~ PASS 2026-03-13
+  - ~~`B2: agents.list[id=main].tools.fs.workspaceOnly = true`~~ APPLIED 2026-03-13; see `docs/ai/SERVER_CHANGELOG_2026-03-13_b2_workspaceonly_apply.md`
   - `owner policy layer`
   - `business memory writer`
   - self-modification deny without killing employee capabilities
@@ -578,7 +598,16 @@
 
 Других подтвержденных remaining server-side actions сейчас больше нет.
 
-- `raw-inbound guard patch-location correction` уже закрыт успешным apply `2026-03-13`; see `docs/ai/SERVER_CHANGELOG_2026-03-13_raw_inbound_guard_patch_location_correction.md`
+- `Timur auth-profile EACCES guard` applied on `2026-03-13`; immediate post-check passed; contour closure pending deferred post-check; see `docs/ai/SERVER_CHANGELOG_2026-03-13_timur_auth_profile_eacces_guard.md`
+- `raw-inbound guard patch-location correction` закрыт для обеих runtime families:
+  - `/usr/local` family: `docs/ai/SERVER_CHANGELOG_2026-03-13_raw_inbound_guard_patch_location_correction.md`
+  - `.npm-global` family: `docs/ai/SERVER_CHANGELOG_2026-03-13_npm_global_raw_inbound_guard_correction.md`
+- both runtime families now contain `RAW_INBOUND_GUARD v1`; patcher covers both (Patches 7+8 + Patch 9)
+- direct CLI `openclaw agent` canary still does not count as Boris DM/gateway proof; see `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_DUAL_INSTALL_CLI_PROOF_PATH.md`
+- XLSX proof chain completed on `2026-03-13`: Step 1 PASS, Step 2 PASS; see `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_XLSX_PROOF_CHAIN_COMPLETE.md`
+- B2 (`workspaceOnly=true`) applied successfully on `2026-03-13`: pre-check 10/10, post-check 9/9, no rollback; see `docs/ai/SERVER_CHANGELOG_2026-03-13_b2_workspaceonly_apply.md`
+- Boris XLSX proof chain + B2 apply is now CLOSED; `/route` closure remains CLOSED
+- next truly open contours: owner policy layer, cron/master SoT migration, tender specialist skill hygiene, auth-profile/EACCES normalization
 - `boris-email-router.timer` и `chief-doctor.timer` уже безопасно отключены по owner decision.
 - `Дайджест развития — Канал мастеров` оставлен как есть и не считается broken.
 - Если позже появится новый live drift после `2026-03-10`, нужен новый read-only audit перед любым apply.
@@ -635,6 +664,59 @@
 - Post-check:
   - internal cron models остаются ожидаемыми;
   - не возникает unintended rewrite runtime routing.
+
+### Cron/master SoT migration program — approved migration track (Slice 1 + cleanup Wave A verified)
+- Что это: owner-approved migration program для cron/master SoT field ownership contour.
+- Owner decision на `2026-03-13`:
+  - target architecture = Option C (one canonical declarative SoT, one materializer/reconciler, `jobs.json` only runtime sink)
+  - temporary operating model = B-now (current split ownership recognized as interim, `jobs.json` not whole-file master, raw edits not supported)
+  - phased migration approved (one wave = one contour slice, verification + changelog after each wave)
+  - guard rules: no new ad-hoc cron writers, contour not closed, target C not declared live, recommendation not promoted to global canon until verified
+- Source of truth: `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_CRON_MASTER_FIELD_OWNERSHIP_DECISION_PREP.md`
+- Phase 1 design approved on `2026-03-13`:
+  - canonical SoT file = `cron-master.json` (separate file, not inside `model-strategy.json`)
+  - first migration slice = route/model subset only (`agentId`, `payload.model`, fallbacks, `timeoutSeconds` floor)
+  - job creation/deletion remains Gateway-only for now
+  - definition fields: best current evidence points to Gateway-managed layer, but formal owner contract deferred until later wave with audit evidence
+- Slice 1 applied and verified on `2026-03-13`:
+  - `cron-master.json` created on `S1` with 13 route entries seeded from `model-strategy.json`
+  - `fix-model-strategy.py` patched to read from `cron-master.json` first, fallback to `model-strategy.json`
+  - `model-strategy.json` remained byte-identical (not modified in Slice 1)
+  - `openclaw.json` remained byte-identical
+  - 2 natural cron runs after apply succeeded (`HH Monitor v3`, `okdesk-comment-monitor`)
+  - three-way consistency confirmed: `cron-master.json` = `jobs.json` = `model-strategy.json` for route/model subset
+  - no collateral drift on any adjacent contour
+  - changelog: `docs/ai/SERVER_CHANGELOG_2026-03-13_cron_master_slice1.md`
+  - backup: `/root/cron-master-slice1-20260313T074924Z/`
+- Cleanup Wave A applied and verified on `2026-03-13`:
+  - `workspace-validator.py` patched to read `cron_default_model` from `cron-master.json` first, fallback to `model-strategy.json`
+  - `monitor.sh` patched to read `cron_default_model` and `cron_models` from `cron-master.json` first (via `docker exec`), fallback to `model-strategy.json`
+  - `model-strategy.json` remained byte-identical (not modified in Wave A)
+  - `cron-master.json` remained byte-identical (not modified in Wave A)
+  - `openclaw.json` remained byte-identical
+  - workspace-validator post-apply run: `15 OK, 1 WARN, 0 FAIL`; section 6: `All 13 cron jobs use bridge/claude-opus-4-6`
+  - heartbeat healthy, watchdog-meta idle, container `running healthy`
+  - all legacy cron field readers now migrated to `cron-master.json`-first read path
+  - changelog: `docs/ai/SERVER_CHANGELOG_2026-03-13_cron_master_cleanup_waveA.md`
+  - backup: `/root/cleanup-waveA-20260313T090535Z/`
+- Status: `approved migration track` — Slice 1 + cleanup Wave A verified, contour still open. Target C not fully live. Only route/model subset migrated. All readers migrated; legacy fields still present in `model-strategy.json`.
+- Remaining work:
+  - Wave B: removal of legacy cron fields from `model-strategy.json` (all readers now migrated; separate approve-only task)
+  - definition-field migration (later wave with audit evidence)
+  - state/meta field formalization (later wave)
+  - full target C declaration (only after all field groups migrated and verified)
+- Риск: ошибочно трактовать target C как уже fully live, или трактовать `jobs.json` как whole-file master, или добавлять new ad-hoc cron writers до завершения migration program, или объявлять definition fields formally Gateway-owned без audit evidence.
+- Rollback for Slice 1: restore from `/root/cron-master-slice1-20260313T074924Z/`, remove `cron-master.json`, re-run fixer.
+- Rollback for Wave A: restore from `/root/cleanup-waveA-20260313T090535Z/`.
+- Post-check:
+  - tracking docs держат contour как `approved migration track`, не closed;
+  - Slice 1 recorded as verified with changelog reference;
+  - cleanup Wave A recorded as verified with changelog reference;
+  - docs не утверждают, что target C fully live;
+  - docs не утверждают, что `jobs.json` = whole-file canonical master;
+  - docs не утверждают, что definition fields formally Gateway-owned;
+  - docs не утверждают, что `model-strategy.json` cleanup completed (legacy fields still present);
+  - no new ad-hoc cron writers added.
 
 ### Architectural migration of okdesk-pipeline
 - Что это: возможная будущая миграция `okdesk-pipeline` между `S2` и `S1`.

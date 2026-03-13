@@ -7,7 +7,7 @@
 - Только repo docs и project instruction files.
 - Runtime, server-side truth, live workflows и secrets находятся вне этого repo.
 - `docs/ai/HANDOFF_2026-03-10.md` и внешний `Boris-Detail-Schema.txt` используются для аудита, а не как live master.
-- `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCKS_5_6_7_8.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_10_MONITORING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_11_CRON_SKILLS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_12_TOOLS_PLUGINS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BORIS_CHAT_HARDENING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TG_RUNTIME_BLOCKER_CONTEXT.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_TG_HEALTH_PATH_CONTRADICTION.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md` и `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md` это dated audit docs: они фиксируют проверенные live-факты и accepted architecture/security analysis на дату документа, но не заменяют live master после этой даты.
+- `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCKS_5_6_7_8.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_10_MONITORING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_11_CRON_SKILLS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_12_TOOLS_PLUGINS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BORIS_CHAT_HARDENING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TG_RUNTIME_BLOCKER_CONTEXT.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_TG_HEALTH_PATH_CONTRADICTION.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_S1_GATEWAY_RESTART_AUTHORIZATION_PATH.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_XLSX_DETERMINISTIC_PROOF_PATH.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_XLSX_PERMISSION_AUTHENTIC_STEP1_PROOF_PATH.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_RAW_INBOUND_GUARD_PATCH_LOCATION_MISS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_DUAL_INSTALL_CLI_PROOF_PATH.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_REAL_DM_RUNTIME_NPM_GLOBAL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_XLSX_PROOF_CHAIN_COMPLETE.md` и `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md` это dated audit docs: они фиксируют проверенные live-факты и accepted architecture/security analysis на дату документа, но не заменяют live master после этой даты.
 
 ## Canonical read order
 1. `docs/ai/OPERATING_CONSENSUS.md`
@@ -30,14 +30,21 @@
 18. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TG_RUNTIME_BLOCKER_CONTEXT.md`
 19. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_TG_HEALTH_PATH_CONTRADICTION.md`
 20. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md`
-21. `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`
-22. `docs/ai/HANDOFF_2026-03-10.md`
-23. `Boris-Detail-Schema.txt` только если файл явно дан для аудита; сырой файл не копировать в repo.
+21. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_S1_GATEWAY_RESTART_AUTHORIZATION_PATH.md`
+22. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_XLSX_DETERMINISTIC_PROOF_PATH.md`
+23. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_XLSX_PERMISSION_AUTHENTIC_STEP1_PROOF_PATH.md`
+24. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_RAW_INBOUND_GUARD_PATCH_LOCATION_MISS.md`
+25. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_DUAL_INSTALL_CLI_PROOF_PATH.md`
+26. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_REAL_DM_RUNTIME_NPM_GLOBAL.md`
+27. `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_XLSX_PROOF_CHAIN_COMPLETE.md`
+28. `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`
+28. `docs/ai/HANDOFF_2026-03-10.md`
+29. `Boris-Detail-Schema.txt` только если файл явно дан для аудита; сырой файл не копировать в repo.
 
 ## Document priority
 - `AGENTS.md` и `CLAUDE.md` это agent entry points; они должны ссылаться на один и тот же канон и не расходиться по правилам проекта.
 - Канон repo: этот файл плюс `docs/ai/PROJECT_MEMORY.md`, `docs/ai/SOURCE_OF_TRUTH.md`, `docs/ai/CHANGE_POLICY.md`, `docs/ai/VERIFICATION_MATRIX.md`, `docs/ai/KNOWN_BUGS_AND_WORKAROUNDS.md`, `docs/ai/SKILL_AUTHORING_POLICY.md`.
-- Dated audit docs: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCKS_5_6_7_8.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_10_MONITORING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_11_CRON_SKILLS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_12_TOOLS_PLUGINS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BORIS_CHAT_HARDENING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TG_RUNTIME_BLOCKER_CONTEXT.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_TG_HEALTH_PATH_CONTRADICTION.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md` и `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`.
+- Dated audit docs: `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_CRON_TIMERS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCKS_5_6_7_8.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_10_MONITORING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_11_CRON_SKILLS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_12_TOOLS_PLUGINS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BORIS_CHAT_HARDENING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TG_RUNTIME_BLOCKER_CONTEXT.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_TG_HEALTH_PATH_CONTRADICTION.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_BORIS_EMPLOYEE_ARCHITECTURE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_S1_GATEWAY_RESTART_AUTHORIZATION_PATH.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_XLSX_DETERMINISTIC_PROOF_PATH.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_XLSX_PERMISSION_AUTHENTIC_STEP1_PROOF_PATH.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_RAW_INBOUND_GUARD_PATCH_LOCATION_MISS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_DUAL_INSTALL_CLI_PROOF_PATH.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_REAL_DM_RUNTIME_NPM_GLOBAL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_XLSX_PROOF_CHAIN_COMPLETE.md` и `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`.
 - Snapshot docs: `docs/ai/HANDOFF_2026-03-10.md` и внешний `Boris-Detail-Schema.txt`.
 - `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` = read-only audit helper по writer/enforcer chains; это не новый live master, а карта overwrite/restore контуров.
 - Live server-side truth проверяется только вне repo.
@@ -200,6 +207,74 @@ If a writer/enforcer exists, do not patch runtime directly unless the change pla
   - CLI auth/device-signature issues can create false incident diagnosis
   - Telegram restore contour closed as not-needed
   - next active hardening contour = `/route` closure
+- S1 gateway restart/reload authorization path on `2026-03-12`:
+  - current narrow runtime activation path on `S1` is absent
+  - current broader valid activation path = Docker restart of container `openclaw-kbxr-openclaw-1`
+  - exact blocker is dual:
+    - `commands.restart=false`
+    - direct gateway RPC from current CLI/operator context fails with `device signature invalid`
+  - do not reopen `commands.restart` just to activate a runtime patch
+  - `B2` remains blocked until the broader activation contour is approved and completed
+- Deterministic XLSX proof path before `B2` on `2026-03-12`:
+  - prior one-step canary was nondeterministic and proved only MIME sniffing
+  - one-step canary is insufficient
+  - deterministic proof before `B2` must be two-step:
+    - Step 1 = ingress/staging proof
+    - Step 2 = workbook semantic proof
+  - pass requires trace/log evidence, not only assistant answer
+  - `B2` remains blocked until both proof steps pass
+- Permission-authentic Step 1 proof refinement before `B2` on `2026-03-12`:
+  - live evidence does not support manual canary artifact mismatch as the reason for the latest failed `Step 1`
+  - the failed manual canary artifact matched the normal raw inbound owner/mode/ACL pattern on `S1`
+  - one more manual permission-matched raw artifact is not the recommended next proof path
+  - safest next proof path is:
+    - future separate patch-location correction of the raw-inbound guard patcher
+    - then separate re-activation of the corrected guard patch
+    - then one real Telegram-uploaded XLSX `Step 1` canary
+    - then immediate read-only audit
+  - `B2` remains blocked until that correction is applied and then that proof passes
+- Raw-inbound guard patch-location root cause before `B2` on `2026-03-13`:
+  - the latest real permission-authentic `Step 1` canary on `S1` used the embedded fallback bundle family
+  - the active hook path for the real native `read` was in `subagent-registry-eWk4_pdR.js`
+  - the approved raw-inbound guard patch had been applied only to `reply-XaR8IPbY.js`
+  - therefore the real canary did not execute the patched guard logic
+  - that exact patch-location miss is why no `RAW_INBOUND_GUARD` marker appeared
+  - that exact patch-location miss is why no staged same-basename file was created
+  - before any new activation attempt, patch-location correction is required on the source-of-truth patcher
+  - another canary before that correction is operationally useless
+  - `B2` remains blocked until the correction is applied and then `Step 1` and `Step 2` both pass
+- Dual-install drift and invalid CLI `Step 1` proof path before `B2` on `2026-03-13`:
+  - patch-location correction for the `/usr/local` family is already completed successfully; see `docs/ai/SERVER_CHANGELOG_2026-03-13_raw_inbound_guard_patch_location_correction.md`
+  - the latest failed `Step 1` did not run through the corrected Boris DM/gateway runtime family
+  - exact session `457e5be6-81f5-487f-af88-fb9d602461a2` used the unpatched `.npm-global` CLI path
+  - therefore that failure is proof-path drift, not a new miss inside the corrected `/usr/local` family
+  - direct `openclaw agent` canary must not be treated as valid Boris DM/gateway proof for `Step 1`
+  - dual-install drift exists between the corrected `/usr/local/...` family and the separate unpatched `.npm-global/...` CLI family
+  - next valid `Step 1` must run only through the real Boris DM/gateway path
+  - `Step 2` remains blocked until that valid `Step 1` passes
+  - `B2` remains blocked until valid `Step 1` passes and then `Step 2` passes
+- Real Boris DM runtime family root cause before `B2` on `2026-03-13`:
+  - the latest failed real Boris DM `Step 1` also did not go through the corrected `/usr/local` family
+  - exact session `6a152919-5d0c-47f0-a3ee-30b0252d789b` logged the real DM `read` from `/data/.npm-global/lib/node_modules/openclaw/dist/entry.js`
+  - real Boris DM/gateway runtime currently resolves through the active unpatched `.npm-global` family
+  - this is why no `RAW_INBOUND_GUARD` marker appeared and no staged same-basename file was created
+  - `/usr/local` patch-location correction remains accepted, but it is not sufficient for `Step 1` proof while the real DM runtime is still bound to `.npm-global`
+  - another canary before correcting the active `.npm-global` family is operationally useless
+  - `Step 2` remains blocked until `.npm-global` correction is completed and then a valid Boris DM `Step 1` passes
+  - `B2` remains blocked until that corrected-valid `Step 1` passes and then `Step 2` passes
+- XLSX proof chain completion on `2026-03-13`:
+  - `.npm-global` guard correction was applied on `2026-03-13`; see `docs/ai/SERVER_CHANGELOG_2026-03-13_npm_global_raw_inbound_guard_correction.md`
+  - Step 1 (ingress/staging proof) passed on real Boris DM/gateway path through `.npm-global` runtime
+  - RAW_INBOUND_GUARD v1 fired, staged file created, `XLSX_READ_PROOF_OK` confirmed
+  - original Step 2 proof model (read-only, no exec) was invalid: binary XLSX requires a parser
+  - replacement Staged Semantic Parse Proof used `exec` + `openpyxl` on staged path only
+  - Step 2 (workbook semantic proof) passed: exact cell values extracted, staged path used, raw inbound avoided
+  - both steps trace-verified in session `6a152919-5d0c-47f0-a3ee-30b0252d789b`
+  - `B2` (`workspaceOnly=true`) was unblocked and then applied successfully on `2026-03-13`
+  - B2 apply: `agents.list[id=main].tools.fs.workspaceOnly = true`; pre-check 10/10 PASS, post-check 9/9 PASS, no rollback needed
+  - see `docs/ai/SERVER_CHANGELOG_2026-03-13_b2_workspaceonly_apply.md`
+  - Boris XLSX proof chain + B2 apply is now CLOSED
+  - next truly open contours: owner policy layer, cron/master SoT migration, tender specialist skill hygiene, auth-profile/EACCES normalization
 - Boris employee architecture/security analysis on `2026-03-12`:
   - Boris must be treated as a full employee agent, not a simple chat bot
   - employee capabilities must be preserved while self-modification and self-admin are denied

@@ -15,7 +15,7 @@
 - Эти документы нужны для аудита и поиска пробелов, но не заменяют live master.
 
 ## Repo-visible audited live facts
-- Для live-фактов, подтвержденных read-only аудитами `2026-03-10`, `2026-03-11` и `2026-03-12`, repo-visible source of truth = `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCKS_5_6_7_8.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_10_MONITORING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_11_CRON_SKILLS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_12_TOOLS_PLUGINS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BORIS_CHAT_HARDENING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TG_RUNTIME_BLOCKER_CONTEXT.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_TG_HEALTH_PATH_CONTRADICTION.md` и `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`.
+- Для live-фактов, подтвержденных read-only аудитами `2026-03-10`, `2026-03-11`, `2026-03-12` и `2026-03-13`, repo-visible source of truth = `docs/ai/SERVER_AUDIT_RESULT_2026-03-10_FULL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_S1_S2_ALIAS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_PROMPT_MEMORY.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_OKDESK_PIPELINE.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-10_MODEL_ROUTING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_PG_TUNNEL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BRIDGE_HA.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCKS_5_6_7_8.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_10_MONITORING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_11_CRON_SKILLS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BLOCK_12_TOOLS_PLUGINS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_BORIS_CHAT_HARDENING.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-11_TG_RUNTIME_BLOCKER_CONTEXT.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_TG_HEALTH_PATH_CONTRADICTION.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_S1_GATEWAY_RESTART_AUTHORIZATION_PATH.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_XLSX_DETERMINISTIC_PROOF_PATH.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_XLSX_PERMISSION_AUTHENTIC_STEP1_PROOF_PATH.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_RAW_INBOUND_GUARD_PATCH_LOCATION_MISS.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_DUAL_INSTALL_CLI_PROOF_PATH.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_REAL_DM_RUNTIME_NPM_GLOBAL.md`, `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_XLSX_PROOF_CHAIN_COMPLETE.md` и `docs/ai/DOCTOR_AND_SELFHEAL_AUDIT_2026-03-11.md`.
 - Это относится к:
   - live placement/status `okdesk-pipeline`;
   - live model routing для internal cron и External Boris;
@@ -64,6 +64,48 @@
 - `openclaw gateway call health --json` must not be used as Telegram runtime proof on `S1`: this path builds a coarse cached summary, and Telegram runtime fields there are not runtime truth.
 - If `channels status --probe` prints config-only fallback, treat it as config visibility only, not as runtime evidence.
 - CLI auth/device-signature issues can force that fallback and create false incident diagnosis.
+- For runtime patch activation on `S1`, current narrow activation path = absent; current broader valid activation path = Docker restart of container `openclaw-kbxr-openclaw-1`, as confirmed in `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_S1_GATEWAY_RESTART_AUTHORIZATION_PATH.md`.
+- `commands.restart` must not be reopened just to activate a runtime patch on `S1`.
+- For XLSX attachment flow before `B2`, deterministic proof is now a separate two-step contour, as confirmed in `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_XLSX_DETERMINISTIC_PROOF_PATH.md`:
+  - Step 1 = ingress/staging proof
+  - Step 2 = workbook semantic proof
+  - pass requires trace/log evidence, not only assistant answer
+- `B2` remains blocked until both proof steps pass.
+- For the latest failed `Step 1`, manual canary artifact mismatch is not supported by live evidence, as confirmed in `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-12_XLSX_PERMISSION_AUTHENTIC_STEP1_PROOF_PATH.md`.
+- The safest next pre-`B2` proof path is:
+  - future separate patch-location correction of the source-of-truth raw-inbound guard patcher
+  - then separate re-activation of the corrected guard patch
+  - then one real Telegram-uploaded XLSX `Step 1` canary
+  - then immediate read-only audit
+- Exact root cause for the latest real permission-authentic `Step 1` is now confirmed in `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_RAW_INBOUND_GUARD_PATCH_LOCATION_MISS.md`:
+  - the active `Step 1` read path on `S1` used the embedded fallback bundle family
+  - the exact active hook path was in `subagent-registry-eWk4_pdR.js`
+  - the approved patch had been applied only to `reply-XaR8IPbY.js`
+  - therefore no guard marker appeared and no staged file was created
+- Patch-location correction for the `/usr/local` family was then applied successfully; see `docs/ai/SERVER_CHANGELOG_2026-03-13_raw_inbound_guard_patch_location_correction.md`.
+- Exact root cause for the latest failed post-correction `Step 1` is now confirmed in `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_DUAL_INSTALL_CLI_PROOF_PATH.md`:
+  - the failed session did not run through the corrected Boris DM/gateway runtime family
+  - exact session `457e5be6-81f5-487f-af88-fb9d602461a2` used the unpatched `.npm-global` CLI path
+  - dual-install drift exists between the corrected `/usr/local/...` family and the separate unpatched `.npm-global/...` CLI family
+  - direct CLI `openclaw agent` canary is not valid Boris DM/gateway proof for `Step 1`
+  - this latest failure is proof-path drift, not a new miss inside the corrected `/usr/local` family
+- Exact root cause for the latest failed real Boris DM `Step 1` is now confirmed in `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_REAL_DM_RUNTIME_NPM_GLOBAL.md`:
+  - exact session `6a152919-5d0c-47f0-a3ee-30b0252d789b` did not go through the corrected `/usr/local` family
+  - the real Boris DM `read` was logged from `/data/.npm-global/lib/node_modules/openclaw/dist/entry.js`
+  - real Boris DM/gateway runtime currently resolves through the active unpatched `.npm-global` family
+  - `/usr/local` patch-location correction remains accepted, but it is not sufficient for `Step 1` proof while the real DM runtime is still bound to `.npm-global`
+  - another canary before correcting the active `.npm-global` family is operationally useless
+- XLSX proof chain completed on `2026-03-13`; see `docs/ai/SERVER_AUDIT_ADDENDUM_2026-03-13_XLSX_PROOF_CHAIN_COMPLETE.md`:
+  - `.npm-global` guard correction applied; see `docs/ai/SERVER_CHANGELOG_2026-03-13_npm_global_raw_inbound_guard_correction.md`
+  - Step 1 (ingress/staging) passed on real Boris DM/gateway path: RAW_INBOUND_GUARD fired, staged file created, `XLSX_READ_PROOF_OK` confirmed
+  - Step 2 (workbook semantic) passed on real Boris DM/gateway path: `exec` + `openpyxl` on staged path, exact cell values matched, raw inbound avoided
+  - both steps trace-verified in session `6a152919-5d0c-47f0-a3ee-30b0252d789b`
+- B2 (`workspaceOnly=true`) applied successfully on `2026-03-13`; see `docs/ai/SERVER_CHANGELOG_2026-03-13_b2_workspaceonly_apply.md`:
+  - `agents.list[id=main].tools.fs.workspaceOnly = true` — one field added
+  - pre-check 10/10 PASS, post-check 9/9 PASS, no rollback needed
+  - writer chain safe: `fix-model-strategy.py` preserves entire `main` object, K() patched, `workspace-validator` does not own `main.tools`
+  - Boris XLSX proof chain + B2 apply is now CLOSED
+  - next truly open contours: owner policy layer, cron/master SoT migration, tender specialist skill hygiene, auth-profile/EACCES normalization.
 - Если владелец захочет supported `/bridge-ha/*` route и на `ops` domain, это owner decision + approve-only ingress change.
 - Для текущего состояния это docs drift / ingress ambiguity, а не подтверждённый live outage.
 
