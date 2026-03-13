@@ -47,7 +47,7 @@
 | 2026-03-11 | Audits | `DOCTOR_AND_SELFHEAL_AUDIT` |
 | 2026-03-12 | Addenda | `TG_HEALTH_PATH_CONTRADICTION`, `BORIS_EMPLOYEE_ARCHITECTURE`, `S1_GATEWAY_RESTART_AUTHORIZATION_PATH`, `XLSX_DETERMINISTIC_PROOF_PATH`, `XLSX_PERMISSION_AUTHENTIC_STEP1_PROOF_PATH` |
 | 2026-03-13 | Addenda | `RAW_INBOUND_GUARD_PATCH_LOCATION_MISS`, `DUAL_INSTALL_CLI_PROOF_PATH`, `REAL_DM_RUNTIME_NPM_GLOBAL`, `CRON_MASTER_FIELD_OWNERSHIP_DECISION_PREP`, `XLSX_PROOF_CHAIN_COMPLETE` |
-| 2026-03-13 | Changelogs | `gdrive_index_recovery`, `search_closeout`, `gog_closeout`, `raw_inbound_guard_patch_location_correction`, `npm_global_raw_inbound_guard_correction`, `b2_workspaceonly_apply`, `cron_master_slice1`, `cron_master_cleanup_waveA`, `cron_master_cleanup_waveB`, `cron_master_def_slice_enabled_schedule`, `cron_master_def_slice2_delivery_sessionTarget_wakeMode`, `cron_master_def_slice3_message`, `rules_soul_hash_integrity`, `exec_deny_alias_fix_and_parse_file_patch`, `gog_skill_nfd_nfc_download_path_fix` |
+| 2026-03-13 | Changelogs | `gdrive_index_recovery`, `search_closeout`, `gog_closeout`, `raw_inbound_guard_patch_location_correction`, `npm_global_raw_inbound_guard_correction`, `b2_workspaceonly_apply`, `cron_master_slice1`, `cron_master_cleanup_waveA`, `cron_master_cleanup_waveB`, `cron_master_def_slice_enabled_schedule`, `cron_master_def_slice2_delivery_sessionTarget_wakeMode`, `cron_master_def_slice3_message`, `rules_soul_hash_integrity`, `exec_deny_alias_fix_and_parse_file_patch`, `gog_skill_nfd_nfc_download_path_fix`, `timur_auth_profile_eacces_guard` |
 
 ---
 
@@ -118,6 +118,7 @@ Do not reopen without new explicit evidence.
 | exec denied via bash→exec alias in per-group tools.deny | `SERVER_CHANGELOG_2026-03-13_exec_deny_alias_fix_and_parse_file_patch.md` | [LIVE] CLOSED |
 | parse-file exec-first / staging-first instruction gap | `SERVER_CHANGELOG_2026-03-13_exec_deny_alias_fix_and_parse_file_patch.md` | [LIVE] CLOSED |
 | gog NFD/NFC download path avoidance | `SERVER_CHANGELOG_2026-03-13_gog_skill_nfd_nfc_download_path_fix.md` | [LIVE] CLOSED |
+| Auth-profile EACCES guard (Option A closure) | `SERVER_CHANGELOG_2026-03-13_timur_auth_profile_eacces_guard.md` | [LIVE] CLOSED |
 
 ---
 
@@ -128,8 +129,7 @@ Do not reopen without new explicit evidence.
 | 1 | **Boris employee architecture — owner policy / business memory separation** | approve-only architecture | not started; prerequisites B2 + Option A (hash integrity) now completed | **D** (apply plan) |
 | 2 | **Cron/master SoT migration program** | approved migration track | Phase 1 Slice 1 + cleanup Wave A + Wave B + definition-field snapshot slices 1+2+3 verified + `notify` skipped as vestigial; route/model subset enforced; all meaningful definition fields snapshot-only in `cron-master.json` (`enabled`, `schedule`, `delivery`, `sessionTarget`, `wakeMode`, `message`); no enforcement for snapshot-only fields; contour open | **G** (post-definition-field stage decision) |
 | 3 | **Tender specialist skill hygiene** | low-risk server-side patch | not applied yet | **E** (apply) in low-risk window |
-| 4 | **Timur Morning/Evening dedicated-agent auth-profile materialization / EACCES** | apply plan hardening / normalization | apply plan drafted, not yet approve-ready; see `docs/ai/HANDOFF_WAVE_2026-03-13_timur_auth_profile_eacces.md` | **D** (apply plan normalization), not yet **G** |
-| 5 | **pg-tunnel-s2 contingency contour** | optional housekeeping | owner decision pending | **G** (owner decision) |
+| 4 | **pg-tunnel-s2 contingency contour** | optional housekeeping | owner decision pending | **G** (owner decision) |
 
 ---
 
@@ -179,6 +179,7 @@ See `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` for full matrix. Key entries:
 | `workspace-validator.py` | restored skills/rules/SOUL.md from backup (hash-based integrity for RULES.md + SOUL.md) | boris-doctor 6h |
 | `service-guard.py` | baseline acceptance or rollback | continuous |
 | `patch-reasoning-fix.sh` | RAW_INBOUND_GUARD in `/usr/local` + `.npm-global` families | startup |
+| `patch-auth-profiles-fix.sh` | EACCES guard in `auth-profiles-*.js` in both dist families | startup |
 
 ---
 
@@ -214,6 +215,7 @@ See `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` for full matrix. Key entries:
 - RULES.md + SOUL.md content-hash integrity (Option A) — CLOSED 2026-03-13
 - exec denied via bash→exec alias + parse-file exec-first/staging-first gap — CLOSED 2026-03-13
 - gog NFD/NFC download path avoidance — CLOSED 2026-03-13
+- Auth-profile EACCES guard (Option A) — CLOSED 2026-03-13
 - Gateway/health-check docs drift — CLOSED
 - Bridge-ha canonical probe — CLOSED
 
@@ -258,15 +260,6 @@ See `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` for full matrix. Key entries:
 - **Not proven**: patch not applied
 - **Next step**: low-risk apply in change window
 
-### 4. Timur Morning/Evening dedicated-agent auth-profile materialization / EACCES
-
-- **Status**: apply plan hardening / normalization
-- **Detail**: see `docs/ai/HANDOFF_WAVE_2026-03-13_timur_auth_profile_eacces.md`
-- **What is proven from prior work** [LIVE]: dedicated cron agents `cron-timur-morning-digest` and `cron-timur-evening-digest` already materialized and running on S1; `model-strategy.json` contains exact `cron_job_routes` for both; structural apply confirmed successful
-- **What is indicated by owner** [DOCS]: active dist path pinned; `saveJsonFile` convergence point pinned; restart requirement pinned; apply plan drafted but not yet approve-ready
-- **What remains unknown**: no dated audit doc in repo for the auth-profile / EACCES specific issue; exact approve boundary, restart semantics, and patcher scope still need normalization
-- **Next step**: final apply plan normalization (**D**), not apply yet; not yet **G**-ready
-
 ---
 
 ## Current apply-readiness snapshot
@@ -281,7 +274,7 @@ See `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` for full matrix. Key entries:
 | Cron/master definition-field snapshot slice 2 (delivery + sessionTarget + wakeMode) | **APPLIED** | snapshot-only, no enforcement |
 | Cron/master definition-field snapshot slice 3 (message) | **APPLIED** | snapshot-only, no enforcement; `notify` skipped as vestigial; all meaningful def-field snapshot coverage complete |
 | Tender specialist patch | **ready** | needs only low-risk change window + backup |
-| Auth-profile / EACCES | **not ready** | plan still needs normalization of approve boundary / restart semantics / patcher scope |
+| Auth-profile / EACCES | **CLOSED** | owner decision Option A; applied-live evidence + code inspection; deferred proof waived |
 | RULES.md + SOUL.md hash integrity (Option A) | **APPLIED** | completed 2026-03-13; see `SERVER_CHANGELOG_2026-03-13_rules_soul_hash_integrity.md` |
 | Owner policy layer | **not ready** | not started; prerequisites B2 + Option A now completed |
 | Business memory separation | **not ready** | not started; prerequisite: owner policy |
@@ -290,4 +283,4 @@ See `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` for full matrix. Key entries:
 
 ## One-line master summary
 
-Boris/OpenClaw as of 2026-03-13: infrastructure stable with WARN; 20+ hardening waves completed; XLSX proof chain complete + B2 `workspaceOnly=true` applied + RULES.md/SOUL.md content-hash integrity (Option A) applied + exec-denied-via-bash-alias fixed + parse-file exec-first/staging-first patched + gog NFD/NFC download path avoidance applied (all canary-verified end-to-end); cron/master SoT migration route/model slice completed (Slice 1 + Wave A + Wave B verified, `cron-master.json` live, legacy fields removed from `model-strategy.json`) + definition-field snapshot slices 1+2+3 completed (all meaningful definition fields snapshot-only in `cron-master.json`, no enforcement) + `notify` skipped as vestigial; next milestones = owner-policy/business-memory separation, post-definition-field stage decision (cosmetic cleanup / state-meta / enforcement), tender specialist skill hygiene, and auth-profile/EACCES apply plan normalization; shared trust boundary remains the open architecture target.
+Boris/OpenClaw as of 2026-03-13: infrastructure stable with WARN; 20+ hardening waves completed; XLSX proof chain complete + B2 `workspaceOnly=true` applied + RULES.md/SOUL.md content-hash integrity (Option A) applied + exec-denied-via-bash-alias fixed + parse-file exec-first/staging-first patched + gog NFD/NFC download path avoidance applied + auth-profile EACCES guard applied and closed by owner decision (Option A) (all canary-verified or inspection-verified end-to-end); cron/master SoT migration route/model slice completed (Slice 1 + Wave A + Wave B verified, `cron-master.json` live, legacy fields removed from `model-strategy.json`) + definition-field snapshot slices 1+2+3 completed (all meaningful definition fields snapshot-only in `cron-master.json`, no enforcement) + `notify` skipped as vestigial; next milestones = owner-policy/business-memory separation, post-definition-field stage decision (cosmetic cleanup / state-meta / enforcement), tender specialist skill hygiene; shared trust boundary remains the open architecture target.
