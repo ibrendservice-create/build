@@ -47,7 +47,7 @@
 | 2026-03-11 | Audits | `DOCTOR_AND_SELFHEAL_AUDIT` |
 | 2026-03-12 | Addenda | `TG_HEALTH_PATH_CONTRADICTION`, `BORIS_EMPLOYEE_ARCHITECTURE`, `S1_GATEWAY_RESTART_AUTHORIZATION_PATH`, `XLSX_DETERMINISTIC_PROOF_PATH`, `XLSX_PERMISSION_AUTHENTIC_STEP1_PROOF_PATH` |
 | 2026-03-13 | Addenda | `RAW_INBOUND_GUARD_PATCH_LOCATION_MISS`, `DUAL_INSTALL_CLI_PROOF_PATH`, `REAL_DM_RUNTIME_NPM_GLOBAL`, `CRON_MASTER_FIELD_OWNERSHIP_DECISION_PREP`, `XLSX_PROOF_CHAIN_COMPLETE` |
-| 2026-03-13 | Changelogs | `gdrive_index_recovery`, `search_closeout`, `gog_closeout`, `raw_inbound_guard_patch_location_correction`, `npm_global_raw_inbound_guard_correction`, `b2_workspaceonly_apply`, `cron_master_slice1`, `cron_master_cleanup_waveA`, `cron_master_cleanup_waveB`, `cron_master_def_slice_enabled_schedule`, `cron_master_def_slice2_delivery_sessionTarget_wakeMode`, `cron_master_def_slice3_message`, `rules_soul_hash_integrity`, `exec_deny_alias_fix_and_parse_file_patch` |
+| 2026-03-13 | Changelogs | `gdrive_index_recovery`, `search_closeout`, `gog_closeout`, `raw_inbound_guard_patch_location_correction`, `npm_global_raw_inbound_guard_correction`, `b2_workspaceonly_apply`, `cron_master_slice1`, `cron_master_cleanup_waveA`, `cron_master_cleanup_waveB`, `cron_master_def_slice_enabled_schedule`, `cron_master_def_slice2_delivery_sessionTarget_wakeMode`, `cron_master_def_slice3_message`, `rules_soul_hash_integrity`, `exec_deny_alias_fix_and_parse_file_patch`, `gog_skill_nfd_nfc_download_path_fix` |
 
 ---
 
@@ -117,6 +117,7 @@ Do not reopen without new explicit evidence.
 | Observer doctor-agent MVP | `OBSERVER_DOCTOR_MVP.md` | [DOCS] CLOSED |
 | exec denied via bash→exec alias in per-group tools.deny | `SERVER_CHANGELOG_2026-03-13_exec_deny_alias_fix_and_parse_file_patch.md` | [LIVE] CLOSED |
 | parse-file exec-first / staging-first instruction gap | `SERVER_CHANGELOG_2026-03-13_exec_deny_alias_fix_and_parse_file_patch.md` | [LIVE] CLOSED |
+| gog NFD/NFC download path avoidance | `SERVER_CHANGELOG_2026-03-13_gog_skill_nfd_nfc_download_path_fix.md` | [LIVE] CLOSED |
 
 ---
 
@@ -196,6 +197,7 @@ See `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` for full matrix. Key entries:
 11. Target C (cron SoT) is not yet live.
 12. Do not expand auto-repair without owner decision.
 13. `bash` must NOT be added to per-group `tools.deny`: OpenClaw `TOOL_NAME_ALIASES` maps `bash` → `exec`, so denying `bash` also denies `exec`. Standard `bash` tool is already stripped from codingTools in runtime.
+14. `gog/SKILL.md` download section WARNING must not be removed: Google Drive returns NFD Cyrillic filenames; Boris generates NFC; Linux fs is byte-exact; without `--out` mandatory guidance Boris will hit ENOENT on Cyrillic-named downloads.
 
 ---
 
@@ -211,6 +213,7 @@ See `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` for full matrix. Key entries:
 - B2 workspaceOnly apply — CLOSED 2026-03-13
 - RULES.md + SOUL.md content-hash integrity (Option A) — CLOSED 2026-03-13
 - exec denied via bash→exec alias + parse-file exec-first/staging-first gap — CLOSED 2026-03-13
+- gog NFD/NFC download path avoidance — CLOSED 2026-03-13
 - Gateway/health-check docs drift — CLOSED
 - Bridge-ha canonical probe — CLOSED
 
@@ -287,4 +290,4 @@ See `docs/ai/CONFIG_WRITERS_AND_ENFORCERS.md` for full matrix. Key entries:
 
 ## One-line master summary
 
-Boris/OpenClaw as of 2026-03-13: infrastructure stable with WARN; 20+ hardening waves completed; XLSX proof chain complete + B2 `workspaceOnly=true` applied + RULES.md/SOUL.md content-hash integrity (Option A) applied + exec-denied-via-bash-alias fixed + parse-file exec-first/staging-first patched (both canary-verified end-to-end); cron/master SoT migration route/model slice completed (Slice 1 + Wave A + Wave B verified, `cron-master.json` live, legacy fields removed from `model-strategy.json`) + definition-field snapshot slices 1+2+3 completed (all meaningful definition fields snapshot-only in `cron-master.json`, no enforcement) + `notify` skipped as vestigial; next milestones = owner-policy/business-memory separation, post-definition-field stage decision (cosmetic cleanup / state-meta / enforcement), tender specialist skill hygiene, and auth-profile/EACCES apply plan normalization; shared trust boundary remains the open architecture target.
+Boris/OpenClaw as of 2026-03-13: infrastructure stable with WARN; 20+ hardening waves completed; XLSX proof chain complete + B2 `workspaceOnly=true` applied + RULES.md/SOUL.md content-hash integrity (Option A) applied + exec-denied-via-bash-alias fixed + parse-file exec-first/staging-first patched + gog NFD/NFC download path avoidance applied (all canary-verified end-to-end); cron/master SoT migration route/model slice completed (Slice 1 + Wave A + Wave B verified, `cron-master.json` live, legacy fields removed from `model-strategy.json`) + definition-field snapshot slices 1+2+3 completed (all meaningful definition fields snapshot-only in `cron-master.json`, no enforcement) + `notify` skipped as vestigial; next milestones = owner-policy/business-memory separation, post-definition-field stage decision (cosmetic cleanup / state-meta / enforcement), tender specialist skill hygiene, and auth-profile/EACCES apply plan normalization; shared trust boundary remains the open architecture target.
